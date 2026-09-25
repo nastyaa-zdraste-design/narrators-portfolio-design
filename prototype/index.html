@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Прототип полотенца</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lobster&family=Rubik:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sea: #19b5c9;
+    --sea-deep: #0b7fa8;
+    --sun: #ffd23a;
+    --coral: #ff5a4e;
+    --pink: #ff8fb1;
+    --orange: #ff9a2e;
+    --ink: #1c2a5c;
+    --cream: #fff4d6;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    min-height: 100vh;
+    background-color: #e3c898;
+    font-family: "Rubik", system-ui, sans-serif;
+    color: var(--ink);
+    overflow-x: hidden;
+  }
+  /* песок: мелкое зерно + крупные неровности */
+  body { position: relative; }
+  .sand {
+    position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+  }
+  .sand svg { width: 100%; height: 100%; display: block; }
+
+  .scene {
+    position: relative; z-index: 1;
+    padding: 90px 16px 140px;
+    display: flex; justify-content: center;
+  }
+  .towel {
+    position: relative;
+    width: min(560px, 100%);
+    transform: rotate(-1.2deg);
+    filter: drop-shadow(0 18px 18px rgba(90, 60, 20, .35)) drop-shadow(0 2px 3px rgba(90, 60, 20, .4));
+  }
+  .fringe { display: block; width: 100%; height: 46px; }
+  .fringe.top { transform: scaleY(-1); margin-bottom: -2px; }
+  .fringe.bottom { margin-top: -2px; }
+
+  .cloth {
+    position: relative;
+    overflow: hidden;
+    background: var(--sea);
+    border-radius: 3px;
+    isolation: isolate;
+  }
+  /* махра: шум + мелкие петли */
+  .cloth::before, .cloth::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 5;
+  }
+  .cloth::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.45 0 0 0 0 0.4 0 0 0 1.1 -0.2'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E"),
+      radial-gradient(circle at 50% 50%, rgba(0,0,0,.14) 0 0.8px, transparent 1.3px);
+    background-size: 220px 220px, 3px 3px;
+    mix-blend-mode: multiply;
+    opacity: .75;
+  }
+  /* складки и свет */
+  .cloth::after {
+    background:
+      linear-gradient(172deg, transparent 0 18%, rgba(255,255,255,.18) 21%, transparent 25%),
+      linear-gradient(186deg, transparent 0 46%, rgba(0,0,0,.14) 49%, rgba(255,255,255,.12) 52%, transparent 56%),
+      linear-gradient(176deg, transparent 0 74%, rgba(0,0,0,.12) 77%, transparent 81%),
+      radial-gradient(120% 60% at 20% 0%, rgba(255,255,255,.18), transparent 60%),
+      linear-gradient(90deg, rgba(0,0,0,.12), transparent 8% 92%, rgba(0,0,0,.12));
+    mix-blend-mode: soft-light;
+  }
+  .print { position: relative; z-index: 1; }
+  .hero, .souvenir, .name h1, .waves, .sea h2, .fish { filter: url(#fabric); }
+
+  /* ——— принт ——— */
+  .band-sunset {
+    height: 26px;
+    background: repeating-linear-gradient(180deg, var(--coral) 0 6px, var(--orange) 6px 12px, var(--sun) 12px 18px, var(--pink) 18px 26px);
+  }
+  .hero { position: relative; padding: 18px 20px 10px; text-align: center; }
+  .hero .arc { width: 100%; height: auto; display: block; }
+  .hero .arc text {
+    font-family: "Lobster", cursive; font-size: 78px;
+    fill: var(--sun); stroke: var(--coral); stroke-width: 3px; paint-order: stroke;
+  }
+  .palms { display: flex; justify-content: space-between; align-items: flex-end; margin-top: -40px; padding: 0 6px; }
+  .palms svg { width: 120px; height: auto; }
+
+  .souvenir {
+    width: 250px; margin: -60px auto 0; position: relative; text-align: center;
+  }
+  .oval {
+    width: 210px; height: 260px; margin: 0 auto; border-radius: 50%;
+    background: radial-gradient(circle at 50% 38%, #ffe3b0 0 30%, #f6b98a 31% 45%, var(--sea-deep) 46%);
+    border: 10px solid var(--sun);
+    box-shadow: 0 0 0 5px var(--coral), 0 0 0 11px var(--cream);
+    display: grid; place-items: center; overflow: hidden; position: relative;
+  }
+  .oval span { font-size: 13px; color: var(--cream); position: absolute; bottom: 36px; font-weight: 600; letter-spacing: .04em; }
+  .ribbon {
+    display: inline-block; margin-top: -18px; position: relative;
+    background: var(--coral); color: var(--cream);
+    font-family: "Lobster", cursive; font-size: 26px;
+    padding: 4px 26px 6px; white-space: nowrap;
+    clip-path: polygon(0 0, 100% 0, 93% 50%, 100% 100%, 0 100%, 7% 50%);
+  }
+  .name { text-align: center; padding: 18px 24px 8px; }
+  .name h1 { font-family: "Lobster", cursive; font-weight: 400; font-size: 52px; margin: 0; color: var(--cream); text-shadow: 3px 3px 0 var(--ink); line-height: 1; }
+  .name p { margin: 10px 0 0; font-weight: 800; text-transform: uppercase; letter-spacing: .12em; font-size: 15px; color: var(--ink); }
+
+  .waves { display: block; width: 100%; height: 40px; margin: 12px 0 0; }
+
+  .sea { background: var(--sea-deep); padding: 20px 22px 26px; position: relative; }
+  .sea h2 { font-family: "Lobster", cursive; font-weight: 400; color: var(--sun); font-size: 40px; margin: 0 0 14px; text-align: center; text-shadow: 2px 2px 0 var(--coral); }
+  .case {
+    background: var(--cream); border-radius: 18px; padding: 16px 18px; margin: 0 0 16px;
+    border: 3px dashed var(--coral);
+  }
+  .case h3 { margin: 0 0 8px; font-size: 20px; font-weight: 800; }
+  .case dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; font-size: 15px; line-height: 1.35; }
+  .case dt { font-weight: 800; color: var(--coral); }
+  .case dd { margin: 0; }
+  .case a { display: inline-block; margin-top: 10px; font-weight: 800; color: var(--sea-deep); }
+  .fish { position: absolute; width: 60px; }
+
+  .foot { background: var(--sea); padding: 24px 22px 20px; text-align: center; position: relative; }
+  .foot .contacts { font-weight: 800; font-size: 18px; }
+  .foot .contacts a { color: var(--ink); }
+
+  /* пришитый ярлычок */
+  .label {
+    position: absolute; z-index: 6; right: 30px; bottom: 30px;
+    width: 150px; padding: 10px 10px 14px;
+    background: #fbfbf4; color: #333; font-size: 11px; line-height: 1.3; text-align: center;
+    transform: rotate(4deg);
+    box-shadow: 0 3px 4px rgba(0,0,0,.25);
+    outline: 1px dashed #b8b39c; outline-offset: -5px;
+  }
+  .label b { display: block; font-size: 10px; letter-spacing: .1em; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+
+<div class="sand" aria-hidden="true">
+  <svg preserveAspectRatio="none">
+    <filter id="grain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" seed="4" result="g"/>
+      <feColorMatrix in="g" values="0 0 0 0 0.55  0 0 0 0 0.43  0 0 0 0 0.28  0 0 0 2.2 -0.95" result="dark"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.6" numOctaves="2" seed="9" result="g2"/>
+      <feColorMatrix in="g2" values="0 0 0 0 1  0 0 0 0 0.97  0 0 0 0 0.9  0 0 0 1.6 -0.95" result="light"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.003 0.02" numOctaves="4" seed="2" result="big"/>
+      <feColorMatrix in="big" values="0 0 0 0 0.6  0 0 0 0 0.46  0 0 0 0 0.28  0 0 0 1.1 -0.4" result="dunes"/>
+      <feMerge><feMergeNode in="dunes"/><feMergeNode in="dark"/><feMergeNode in="light"/></feMerge>
+    </filter>
+    <rect width="100%" height="100%" filter="url(#grain)"/>
+  </svg>
+</div>
+
+<!-- лёгкая «мятость» ткани для принта -->
+<svg width="0" height="0" style="position:absolute">
+  <filter id="fabric">
+    <feTurbulence type="fractalNoise" baseFrequency="0.02 0.035" numOctaves="2" seed="7" result="w"/>
+    <feDisplacementMap in="SourceGraphic" in2="w" scale="5" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</svg>
+
+<main class="scene">
+  <div class="towel">
+    <svg class="fringe top" id="fringeTop" viewBox="0 0 560 46" preserveAspectRatio="none" aria-hidden="true"></svg>
+    <div class="cloth">
+      <div class="print">
+        <div class="band-sunset"></div>
+
+        <div class="hero">
+          <svg class="arc" viewBox="0 0 520 170" aria-label="Москва 2026">
+            <circle cx="260" cy="170" r="95" fill="#ffd23a"/>
+            <g stroke="#ffd23a" stroke-width="8" stroke-linecap="round">
+              <line x1="260" y1="60" x2="260" y2="40"/><line x1="170" y1="95" x2="152" y2="80"/><line x1="350" y1="95" x2="368" y2="80"/>
+              <line x1="140" y1="140" x2="115" y2="132"/><line x1="380" y1="140" x2="405" y2="132"/>
+            </g>
+            <path id="arcPath" d="M 40 160 Q 260 -30 480 160" fill="none"/>
+            <text><textPath href="#arcPath" startOffset="50%" text-anchor="middle">Москва 2026</textPath></text>
+          </svg>
+          <div class="palms">
+            <svg viewBox="0 0 120 170" aria-hidden="true">
+              <path d="M62 170 C 58 120 54 80 66 40" stroke="#8a4b1f" stroke-width="10" fill="none" stroke-linecap="round"/>
+              <g fill="#1f9e4a"><path d="M66 40 C 40 20 15 28 2 50 C 25 38 45 40 66 40Z"/><path d="M66 40 C 60 12 40 0 18 4 C 40 14 55 24 66 40Z"/><path d="M66 40 C 80 10 100 4 118 12 C 96 16 80 24 66 40Z"/><path d="M66 40 C 95 30 112 44 118 66 C 100 50 84 44 66 40Z"/></g>
+              <circle cx="62" cy="46" r="6" fill="#6b3a17"/><circle cx="72" cy="48" r="6" fill="#6b3a17"/>
+            </svg>
+            <svg viewBox="0 0 120 170" aria-hidden="true" style="transform:scaleX(-1)">
+              <path d="M62 170 C 58 120 54 80 66 40" stroke="#8a4b1f" stroke-width="10" fill="none" stroke-linecap="round"/>
+              <g fill="#1f9e4a"><path d="M66 40 C 40 20 15 28 2 50 C 25 38 45 40 66 40Z"/><path d="M66 40 C 60 12 40 0 18 4 C 40 14 55 24 66 40Z"/><path d="M66 40 C 80 10 100 4 118 12 C 96 16 80 24 66 40Z"/><path d="M66 40 C 95 30 112 44 118 66 C 100 50 84 44 66 40Z"/></g>
+            </svg>
+          </div>
+        </div>
+
+        <div class="souvenir">
+          <div class="oval"><span>твоё фото</span></div>
+          <div class="ribbon">Сувенир с курорта</div>
+        </div>
+
+        <div class="name">
+          <h1>Настя Сидорова</h1>
+          <p>сценаристка · креатор</p>
+        </div>
+
+        <svg class="waves" viewBox="0 0 560 40" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M0 20 Q 35 0 70 20 T 140 20 T 210 20 T 280 20 T 350 20 T 420 20 T 490 20 T 560 20 V40 H0Z" fill="#0b7fa8"/>
+          <path d="M0 28 Q 35 12 70 28 T 140 28 T 210 28 T 280 28 T 350 28 T 420 28 T 490 28 T 560 28" stroke="#fff4d6" stroke-width="3" fill="none"/>
+        </svg>
+
+        <section class="sea">
+          <svg class="fish" style="left:8px;top:12px" viewBox="0 0 60 30"><path d="M5 15 Q 25 0 45 15 Q 25 30 5 15Z" fill="#ff9a2e"/><path d="M45 15 L58 5 L58 25Z" fill="#ff5a4e"/><circle cx="15" cy="13" r="2" fill="#1c2a5c"/></svg>
+          <svg class="fish" style="right:10px;top:18px;transform:scaleX(-1)" viewBox="0 0 60 30"><path d="M5 15 Q 25 0 45 15 Q 25 30 5 15Z" fill="#ff8fb1"/><path d="M45 15 L58 5 L58 25Z" fill="#ffd23a"/><circle cx="15" cy="13" r="2" fill="#1c2a5c"/></svg>
+          <h2>Кейсы</h2>
+          <article class="case">
+            <h3>VK · «Открытый код»</h3>
+            <dl>
+              <dt>Задача</dt><dd>документальный веб-сериал о людях IT</dd>
+              <dt>Сделала</dt><dd>сценарий и продюсирование пост-продакшна</dd>
+              <dt>Итог</dt><dd>~450 тыс. просмотров на эпизод</dd>
+            </dl>
+            <a href="https://vk.com/video/playlist/-92204627_83">Смотреть →</a>
+          </article>
+          <article class="case">
+            <h3>Сбер · «Школа 21»</h3>
+            <dl>
+              <dt>Задача</dt><dd>промо к открытию IT-школы</dd>
+              <dt>Сделала</dt><dd>идею через «Легенду о Данко» Горького и сценарий</dd>
+              <dt>Итог</dt><dd>ролик к запуску школы</dd>
+            </dl>
+            <a href="#">Смотреть →</a>
+          </article>
+        </section>
+
+        <div class="foot">
+          <div class="contacts">Telegram: <a href="https://t.me/nastyaa_zdraste">@nastyaa_zdraste</a></div>
+        </div>
+        <div class="band-sunset"></div>
+      </div>
+    </div>
+    <div class="label"><b>100% ХЛОПОК</b>Narrators × Настя<br>уже работали вместе:<br>«Нефтяной профсоюз»</div>
+    <svg class="fringe bottom" id="fringeBottom" viewBox="0 0 560 46" preserveAspectRatio="none" aria-hidden="true"></svg>
+  </div>
+</main>
+
+<script>
+  // бахрома: пучки ниток, связанные узелком
+  function fringe(svg, seed) {
+    let s = seed;
+    const rnd = () => (s = (s * 9301 + 49297) % 233280) / 233280;
+    const colors = ["#ff5a4e", "#e24a40", "#ff6d5f"];
+    let out = "";
+    for (let x = 6; x < 556; x += 11) {
+      const knotY = 9 + rnd() * 3;
+      const sway = (rnd() - .5) * 6;
+      out += `<rect x="${x - 4}" y="0" width="8" height="${knotY}" fill="${colors[0]}"/>`;
+      for (let k = 0; k < 4; k++) {
+        const sx = x - 3 + k * 2;
+        const ex = sx + sway + (k - 1.5) * 2 + (rnd() - .5) * 3;
+        const len = 32 + rnd() * 12;
+        out += `<path d="M${x} ${knotY} Q ${(sx + ex) / 2 + sway} ${knotY + len / 2} ${ex} ${knotY + len}" stroke="${colors[k % 3]}" stroke-width="1.8" fill="none" stroke-linecap="round"/>`;
+      }
+      out += `<ellipse cx="${x}" cy="${knotY}" rx="3.6" ry="2.6" fill="#c9392f"/>`;
+    }
+    svg.innerHTML = out;
+  }
+  fringe(document.getElementById("fringeTop"), 7);
+  fringe(document.getElementById("fringeBottom"), 23);
+</script>
+</body>
+</html>
