@@ -87,7 +87,7 @@
   .intro p + p { margin-top: 8px; }
 
   /* ——— море ——— */
-  .route { padding-top: calc(var(--cell) * 8); }
+  .route { padding: calc(var(--cell) * 2) 0 calc(var(--cell) * 16); }
   .stops { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: calc(var(--cell) * 9); }
   .stop {
     width: fit-content; max-width: 86%; min-width: 58%; display: flex; flex-direction: column; gap: 2px;
@@ -98,7 +98,7 @@
   .stop b { font-weight: 700; }
   .stop a { color: inherit; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
   .stop a:hover, .stop a:focus-visible { text-decoration-thickness: 2px; outline: none; }
-  .case-list { display: flex; flex-direction: column; gap: calc(var(--cell) * 13); padding: calc(var(--cell) * 3) 0 calc(var(--cell) * 20); }
+  .case-list { display: flex; flex-direction: column; gap: calc(var(--cell) * 26); padding: calc(var(--cell) * 3) 0 calc(var(--cell) * 16); }
   .case { margin-bottom: 0; }
   .case { padding: calc(var(--cell) * 3) calc(var(--cell) * 2); }
   .horizon { height: 0; }
@@ -130,7 +130,7 @@
 
   /* ——— песок ——— */
   .shore { height: calc(var(--cell) * 4); }
-  .shells { height: calc(var(--cell) * 16); }
+  .shells { height: calc(var(--cell) * 10); }
   .sand-end { height: calc(var(--cell) * 16); }
   .hero { display: flex; flex-direction: column; }
   .beach-row { display: flex; flex-direction: column; align-items: center; gap: calc(var(--cell) * 8); }
@@ -214,6 +214,7 @@
         <div class="horizon" data-px="horizon"></div>
 
         <section class="route" aria-labelledby="route-h">
+          <div class="vista" data-px="vista"></div>
           <h2 id="route-h" class="px-heading" data-px="title" data-style="heading" data-text="Маршрут"><span class="sr">Маршрут</span></h2>
           <ol class="stops">
             <li class="stop" data-px="panel" data-print="island">
@@ -230,8 +231,14 @@
           </ol>
         </section>
 
+        <div class="shore" data-px="shore"></div>
+        <div class="shells" data-px="shells"></div>
         <section class="cases" aria-labelledby="cases-h">
-          <div class="vista" data-px="vista"></div>
+          <span hidden data-beach="croc" data-sprite="sprites/croc.png" data-w="58"></span>
+          <span hidden data-beach="corn" data-sprite="sprites/corn.png" data-w="34"></span>
+          <span hidden data-beach="cap" data-sprite="sprites/cap.png" data-w="30"></span>
+          <span hidden data-beach="churchkhela" data-sprite="sprites/churchkhela.png" data-w="16"></span>
+          <span hidden data-beach="cup" data-sprite="sprites/cup.png" data-w="15"></span>
           <h2 id="cases-h" class="px-heading" data-px="title" data-style="heading" data-text="Кейсы"><span class="sr">Кейсы</span></h2>
 
           <div class="case-list">
@@ -279,8 +286,6 @@
           </div>
         </section>
 
-        <div class="shore" data-px="shore"></div>
-        <div class="shells" data-px="shells"></div>
 
         <h2 class="px-heading contacts-h" data-px="title" data-style="heading" data-text="Для связи"><span class="sr">Для связи</span></h2>
         <div class="beach-row">

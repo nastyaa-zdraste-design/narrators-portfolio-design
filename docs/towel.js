@@ -743,6 +743,40 @@
 
     // ракушки разбросаны по всему пляжу, в обход панелей и ярлычка
     const avoid = L.marks.filter((m) => m.kind === "panel" || m.kind === "avoid" || m.kind === "title").map((m) => m.r);
+
+    // вещи, забытые на пляже: крупные и мелкие, могут уходить за край полотенца
+    const items = [];
+    const ir = rng(31);
+    const beachTop = L.shells.y + 2;
+    for (const el of cloth.querySelectorAll("[data-beach]")) {
+      const img = sprites[el.dataset.sprite];
+      if (!img) continue;
+      const aspect = img.height / img.width;
+      for (let t = 0; t < 700; t++) {
+        const scale = Math.max(0.45, 1 - t / 500);
+        const w = Math.min(parseFloat(el.dataset.w), cols * 0.5) * scale, h = w * aspect;
+        const x = -w * 0.25 + ir() * (cols - w * 0.5), y = beachTop + ir() * (rows - 6 - beachTop - h);
+        const box = { x: x - 2, y: y - 2, w: w + 4, h: h + 4 };
+        const hit = (q) => !(box.x > q.x + q.w || box.x + box.w < q.x || box.y > q.y + q.h || box.y + box.h < q.y);
+        if (avoid.some(hit) || items.some((o) => hit(o.box))) continue;
+        items.push({ img, x, y, w, h, box, rot: (ir() - 0.5) * 0.5 });
+        break;
+      }
+    }
+    stamp((ctx) => {
+      for (const o of items) {
+        ctx.save(); ctx.translate(o.x + o.w / 2 + 1, o.y + o.h / 2 + 1.5); ctx.rotate(o.rot);
+        ctx.drawImage(tinted(o.img, "#c4a577"), -o.w / 2, -o.h / 2, o.w, o.h); ctx.restore();
+      }
+    });
+    stamp((ctx) => {
+      ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
+      for (const o of items) {
+        ctx.save(); ctx.translate(o.x + o.w / 2, o.y + o.h / 2); ctx.rotate(o.rot);
+        ctx.drawImage(o.img, -o.w / 2, -o.h / 2, o.w, o.h); ctx.restore();
+      }
+    });
+    for (const o of items) avoid.push(o.box);
     const u = Math.min(9, Math.max(5, cols / 11));
     const sandTop = L.shells.y + 1, sandBottom = rows - 4;
     const r = rng(42), shells = [];
@@ -751,7 +785,7 @@
       avoid.every((a) => x < a.x - s || x > a.x + a.w + s || y < a.y - s || y > a.y + a.h + s) &&
       shells.every((o) => Math.hypot(o.x - x, o.y - y) > (o.s + s) * 1.9);
     const kindsOf = [conch, scallop, pebble, star, scallop, pebble, conch, pebble, star];
-    const target = Math.round(((sandBottom - sandTop) * cols) / (u * u * 5.5));
+    const target = Math.round(((sandBottom - sandTop) * cols) / (u * u * 8.5));
     for (let tries = 0; tries < 900 && shells.length < target; tries++) {
       const s = u * (0.45 + r() * 0.4);
       const x = r() * cols, y = sandTop + r() * (sandBottom - sandTop);
@@ -784,47 +818,6 @@
       }
       else if (m.kind === "title") { stamp((ctx) => script(ctx, m.r, m.el.dataset.text, m.el.dataset.style, m.el.dataset.font)); block(m.r, 0); }
       else if (m.kind === "avoid") block(m.r);
-    }
-
-    // рыбки и буйки в свободной воде между кейсами — не под текстом
-    const caseRects = L.marks.filter((m) => m.kind === "panel" && m.el.dataset.print === "bare").map((m) => m.r);
-    if (caseRects.length) {
-      const top = Math.min(...caseRects.map((q) => q.y)) - 2, bottom = L.shore - 8;
-      const fr = rng(9), placed = [];
-      const clear = (x, y, rad) => x > rad + 2 && x < cols - rad - 2 &&
-        caseRects.every((q) => x < q.x - rad - 3 || x > q.x + q.w + rad + 3 || y < q.y - rad - 3 || y > q.y + q.h + rad + 3) &&
-        placed.every((o) => Math.hypot(o.x - x, o.y - y) > (o.rad + rad) * 5);
-      const want = Math.round((bottom - top) * cols / 2600);
-      for (let t = 0; t < 1500 && placed.length < want; t++) {
-        const kind = fr() < 0.8 ? "fish" : "buoy";
-        const rad = kind === "fish" ? 3 + fr() * 2 : 3.2;
-        const x = fr() * cols, y = top + fr() * (bottom - top);
-        if (clear(x, y, rad)) placed.push({ kind, x, y, rad, flip: fr() > 0.5, hue: Math.floor(fr() * 4) });
-      }
-      stamp((ctx) => {
-        const fishCols = [["#ff9a2e", "#e8473b"], ["#ffd23f", "#ff9a2e"], ["#ff9ab5", "#e8473b"], ["#fffaf0", "#ff9a2e"]];
-        for (const o of placed) {
-          ctx.save(); ctx.translate(o.x, o.y);
-          if (o.kind === "fish") {
-            if (o.flip) ctx.scale(-1, 1);
-            const [body, fin] = fishCols[o.hue], r = o.rad;
-            ctx.fillStyle = fin;
-            ctx.beginPath(); ctx.moveTo(r * 0.8, 0); ctx.lineTo(r * 1.7, -r * 0.7); ctx.lineTo(r * 1.7, r * 0.7); ctx.fill();
-            ctx.fillStyle = body;
-            ctx.beginPath(); ctx.ellipse(0, 0, r, r * 0.6, 0, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = fin; ctx.fillRect(-r * 0.1, -r * 0.6, r * 0.5, r * 1.2);
-            ctx.fillStyle = "#1c2a5c"; ctx.fillRect(-r * 0.65, -r * 0.2, 1, 1);
-          } else {
-            ctx.fillStyle = "#ffffff";
-            ctx.beginPath(); ctx.ellipse(0, 1.5, o.rad + 1.5, 1.2, 0, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = "#e8473b";
-            ctx.beginPath(); ctx.arc(0, 0, o.rad, Math.PI, 0); ctx.fill();
-            ctx.fillStyle = "#fffaf0"; ctx.fillRect(-o.rad, -1.2, o.rad * 2, 1.2);
-            ctx.fillStyle = "#5a3320"; ctx.fillRect(-0.5, -o.rad - 2.5, 1, 2.5);
-          }
-          ctx.restore();
-        }
-      });
     }
 
     // живой слой над горизонтом «Кейсов»: волны и дельфины
