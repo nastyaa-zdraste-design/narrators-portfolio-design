@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Путёвка — эскиз</title>
+<link href="fonts/fonts.css" rel="stylesheet">
+<style>
+  :root {
+    --paper: #f1e6cc;
+    --paper-2: #e8d9b5;
+    --ink: #262019;
+    --red: #c8372d;
+    --blue-ink: #2a3f9e;
+    --stamp: #5b3fa0;
+    --sea: #2f7f8f;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: #2b5d66;
+    background-image:
+      radial-gradient(120% 80% at 50% 0%, rgba(255,255,255,.12), transparent 60%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .35 0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+    font-family: "PT Serif", Georgia, serif;
+    color: var(--ink);
+    padding: 64px 16px 96px;
+  }
+  .ticket {
+    position: relative;
+    max-width: 760px; margin: 0 auto;
+    background: var(--paper);
+    display: grid; grid-template-columns: 1fr 190px;
+    box-shadow: 0 1px 0 rgba(0,0,0,.2), 0 30px 60px -20px rgba(0,0,0,.55), 0 8px 18px rgba(0,0,0,.25);
+    transform: rotate(-.8deg);
+  }
+  /* бумага: волокна, неравномерное старение */
+  .ticket::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 3;
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .27 0 0 0 0 .15 0 0 0 .5 -.12'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23p)'/%3E%3C/svg%3E"),
+      radial-gradient(140% 90% at 30% 20%, transparent 55%, rgba(140,100,40,.22)),
+      radial-gradient(40% 30% at 85% 90%, rgba(150,110,50,.18), transparent 70%);
+    mix-blend-mode: multiply;
+  }
+  .main { padding: 38px 40px 34px; position: relative; }
+  .stub {
+    position: relative; padding: 38px 20px 30px;
+    border-left: 2px dashed rgba(38,32,25,.35);
+    background: var(--paper-2);
+  }
+  /* перфорация */
+  .stub::before {
+    content: ""; position: absolute; left: -7px; top: 0; bottom: 0; width: 12px;
+    background: radial-gradient(circle at 6px 9px, #2b5d66 3.4px, transparent 4px) 0 0 / 12px 18px repeat-y;
+  }
+  .eyebrow {
+    font-family: "PT Sans Narrow", sans-serif; font-weight: 700; letter-spacing: .28em;
+    font-size: 12px; text-transform: uppercase; display: flex; justify-content: space-between;
+    border-bottom: 1.5px solid var(--ink); padding-bottom: 8px;
+  }
+  .eyebrow b { color: var(--red); }
+  h1 {
+    font-family: "Ruslan Display", serif; font-weight: 400;
+    font-size: clamp(44px, 8vw, 76px); line-height: .95; margin: 22px 0 6px;
+    color: var(--red); letter-spacing: .01em;
+  }
+  .sub { font-style: italic; font-size: 19px; margin: 0 0 26px; }
+  .fields { display: grid; grid-template-columns: 150px 1fr; gap: 0; font-size: 15px; }
+  .fields dt {
+    font-family: "PT Sans Narrow", sans-serif; text-transform: uppercase; letter-spacing: .12em; font-size: 12px;
+    padding: 12px 0 4px; color: #5a4d3a; border-bottom: 1px solid rgba(38,32,25,.45);
+  }
+  .fields dd {
+    margin: 0; padding: 4px 0 3px; border-bottom: 1px solid rgba(38,32,25,.45);
+    font-family: "Caveat", cursive; font-size: 27px; line-height: 1.2; color: var(--blue-ink);
+  }
+  .photo {
+    position: absolute; right: 36px; top: 96px; width: 122px; height: 156px;
+    background: #cfc6b3; border: 6px solid #fbf7ee; box-shadow: 0 2px 6px rgba(0,0,0,.3);
+    transform: rotate(3deg);
+    display: grid; place-items: center;
+    font-family: "PT Sans Narrow", sans-serif; font-size: 11px; letter-spacing: .15em; text-transform: uppercase; color: #7a705f;
+  }
+  .clip {
+    position: absolute; top: -18px; left: 30px; width: 18px; height: 52px;
+    border: 3px solid #9ea3a8; border-radius: 9px; border-bottom-color: transparent;
+    box-shadow: inset 0 0 0 3px transparent;
+  }
+  .stamp {
+    position: absolute; right: 44px; bottom: 150px; width: 150px; height: 150px;
+    transform: rotate(-14deg); mix-blend-mode: multiply; opacity: .9;
+    filter: url(#rough);
+  }
+  .stub h2 {
+    font-family: "PT Sans Narrow", sans-serif; font-size: 12px; letter-spacing: .28em; text-transform: uppercase;
+    margin: 0 0 14px; font-weight: 700;
+  }
+  .stub .num { font-family: "Ruslan Display", serif; font-size: 44px; color: var(--red); line-height: 1; }
+  .stub p { font-size: 13px; line-height: 1.45; margin: 12px 0 0; }
+  .stub .hand { font-family: "Caveat", cursive; font-size: 22px; color: var(--blue-ink); line-height: 1.1; margin-top: 18px; }
+  .barcode { height: 38px; margin-top: 22px;
+    background: repeating-linear-gradient(90deg, var(--ink) 0 2px, transparent 2px 4px, var(--ink) 4px 5px, transparent 5px 8px, var(--ink) 8px 11px, transparent 11px 12px); opacity: .85; }
+
+  @media (max-width: 640px) {
+    .ticket { grid-template-columns: 1fr; }
+    .stub { border-left: 0; border-top: 2px dashed rgba(38,32,25,.35); }
+    .stub::before { display: none; }
+    .main { padding: 28px 22px; }
+    .photo { position: relative; right: auto; top: auto; margin: 0 0 18px; }
+    .fields { grid-template-columns: 1fr; }
+    .stamp { right: 10px; bottom: 10px; width: 120px; height: 120px; }
+  }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <filter id="rough">
+    <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="3" result="n"/>
+    <feColorMatrix in="n" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.6 1.25" result="holes"/>
+    <feComposite in="SourceGraphic" in2="holes" operator="in" result="speckled"/>
+    <feTurbulence type="fractalNoise" baseFrequency=".05" numOctaves="2" seed="8" result="w"/>
+    <feDisplacementMap in="speckled" in2="w" scale="3"/>
+  </filter>
+</svg>
+
+<article class="ticket">
+  <div class="main">
+    <div class="eyebrow"><span>Курортная путёвка</span><b>№ 2026</b><span>серия КР</span></div>
+    <h1>Москва<br>2026</h1>
+    <p class="sub">Санаторий «Сценарий» · профиль: креатив</p>
+
+    <div class="photo"><div class="clip"></div>фото</div>
+
+    <dl class="fields">
+      <dt>Фамилия, имя</dt><dd>Сидорова Анастасия</dd>
+      <dt>Должность</dt><dd>сценаристка-креатор</dd>
+      <dt>Стаж</dt><dd>с 2022 г. и по наст. время</dd>
+      <dt>Сейчас отдыхает</dt><dd>студия Story Hunters</dd>
+      <dt>Диагноз</dt><dd>хронический креатив, ремиссии нет</dd>
+    </dl>
+
+    <svg class="stamp" viewBox="0 0 150 150" aria-label="Печать: уже работали с Narrators">
+      <circle cx="75" cy="75" r="70" fill="none" stroke="#5b3fa0" stroke-width="4"/>
+      <circle cx="75" cy="75" r="50" fill="none" stroke="#5b3fa0" stroke-width="2"/>
+      <path id="ring" d="M75 75 m -60 0 a 60 60 0 1 1 120 0 a 60 60 0 1 1 -120 0" fill="none"/>
+      <text font-family="PT Sans Narrow" font-weight="700" font-size="13" letter-spacing="2.2" fill="#5b3fa0">
+        <textPath href="#ring">УЖЕ РАБОТАЛИ ВМЕСТЕ · NARRATORS ·</textPath>
+      </text>
+      <text x="75" y="70" text-anchor="middle" font-family="Ruslan Display" font-size="18" fill="#5b3fa0">ГОДЕН</text>
+      <text x="75" y="90" text-anchor="middle" font-family="PT Sans Narrow" font-weight="700" font-size="10" letter-spacing="1" fill="#5b3fa0">НЕФТЯНОЙ ПРОФСОЮЗ</text>
+    </svg>
+  </div>
+
+  <aside class="stub">
+    <h2>Талон на процедуру</h2>
+    <div class="num">№ 1</div>
+    <p><b>VK · «Открытый код».</b><br>Назначено: док-сериал про людей IT.<br>Проведено: сценарий, пост-продакшн.</p>
+    <p class="hand">≈ 450 тыс. просмотров на серию</p>
+    <div class="barcode"></div>
+  </aside>
+</article>
+</body>
+</html>
