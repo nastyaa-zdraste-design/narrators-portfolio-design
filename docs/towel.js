@@ -431,6 +431,114 @@
         const py = side < 0.25 ? y + 1 : side < 0.5 ? y + h - 2 : y + t * h;
         ctx.fillRect(px, py, 1, 1);
       }
+    } else if (kind === "island") {
+      const isle = (g, c) => {
+        ctx.fillStyle = c;
+        ctx.beginPath(); ctx.ellipse(x + w / 2, y + h / 2, w / 2 + 3 + g, h / 2 + 3.5 + g, 0, 0, Math.PI * 2); ctx.fill();
+        bumps(ctx, x + 2, y, w - 4, h, seed, 3.4, 3, g - 0.6);
+      };
+      isle(2.2, "#ffffff"); isle(1.2, "#93d0ea"); isle(0.3, "#dcc59c"); isle(-0.5, "#f6ead3");
+      // пальмочка на краю острова
+      const px = x + 3.5, base = y + h * 0.5;
+      ctx.fillStyle = "#35a03a";
+      ctx.beginPath(); ctx.ellipse(px, base + 1, 3.2, 1.4, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = "#8a4b1f"; ctx.lineWidth = 1.3; ctx.lineCap = "round";
+      ctx.beginPath(); ctx.moveTo(px, base); ctx.quadraticCurveTo(px - 1.5, (base + y) / 2 - 2, px + 0.5, y - 3); ctx.stroke();
+      ctx.lineWidth = 1.2;
+      for (const [dx, dy, c] of [[-5, 2.2, "#1f8233"], [5, 2.4, "#35a03a"], [-3.8, -1.8, "#5dbb3c"], [3.8, -1.6, "#1f8233"], [0.5, -3.5, "#5dbb3c"]]) {
+        ctx.strokeStyle = c;
+        ctx.beginPath(); ctx.moveTo(px + 0.5, y - 3); ctx.quadraticCurveTo(px + 0.5 + dx * 0.5, y - 3 + dy - 1.5, px + 0.5 + dx, y - 3 + dy); ctx.stroke();
+      }
+      ctx.fillStyle = "#6b3a17"; ctx.fillRect(px, y - 2.5, 1, 1); ctx.fillRect(px + 1, y - 2, 1, 1);
+    } else if (kind === "mattress") {
+      ctx.fillStyle = "#1a52a6"; ctx.beginPath(); ctx.roundRect(x - 1, y - 0.5, w + 4, h + 4, 4); ctx.fill();
+      ctx.fillStyle = "#ffb02e"; ctx.beginPath(); ctx.roundRect(x - 2, y - 2, w + 4, h + 4, 4); ctx.fill();
+      ctx.fillStyle = "#fff08a"; ctx.beginPath(); ctx.roundRect(x - 1, y - 1, w + 2, h + 2, 3); ctx.fill();
+      ctx.fillStyle = "#efe25a";
+      for (let yy = y + 3; yy < y + h - 1; yy += 5) ctx.fillRect(x + 6, yy, w - 6, 1);
+      ctx.fillStyle = "#ffd23f"; ctx.beginPath(); ctx.roundRect(x - 1, y - 1, 6, h + 2, 3); ctx.fill();
+      ctx.fillStyle = "#ffb02e"; ctx.fillRect(x + 5, y - 1, 1, h + 2);
+      ctx.fillStyle = "#e8473b"; ctx.beginPath(); ctx.arc(x + w - 1, y + 1, 1.2, 0, Math.PI * 2); ctx.fill();
+    } else if (kind === "note") {
+      ctx.fillStyle = "#1a52a6"; ctx.fillRect(x, y - 1, w + 2, h + 4);
+      ctx.fillStyle = "#fdf8ee"; ctx.fillRect(x - 1, y - 1, w + 2, h + 2);
+      ctx.fillStyle = "#ecdcbc"; ctx.fillRect(x - 1, y - 1, 1, h + 2); ctx.fillRect(x + w, y - 1, 1, h + 2);
+      for (const ry of [y - 4, y + h]) {
+        ctx.fillStyle = "#c4a577"; ctx.beginPath(); ctx.roundRect(x - 2.5, ry, w + 5, 3.4, 1.7); ctx.fill();
+        ctx.fillStyle = "#e7bf8f"; ctx.fillRect(x - 2, ry + 0.8, w + 4, 1.2);
+        ctx.fillStyle = "#fcd9a0"; ctx.fillRect(x - 1.5, ry + 0.8, w + 3, 0.6);
+      }
+      // бутылка, из которой достали записку
+      ctx.save(); ctx.translate(x + w - 6, y - 7); ctx.rotate(-0.35);
+      ctx.fillStyle = "#16652a"; ctx.beginPath(); ctx.roundRect(-8, -2.6, 12, 5.2, 2.4); ctx.fill();
+      ctx.fillStyle = "#35a03a"; ctx.beginPath(); ctx.roundRect(-7.5, -2.2, 11, 4.4, 2); ctx.fill();
+      ctx.fillStyle = "#1f8233"; ctx.fillRect(3.5, -1.2, 4, 2.4);
+      ctx.fillStyle = "#c4a577"; ctx.fillRect(7.3, -1.2, 1.8, 2.4);
+      ctx.fillStyle = "#93d23f"; ctx.fillRect(-6, -1.6, 7, 0.8);
+      ctx.restore();
+    } else if (kind === "raft") {
+      ctx.fillStyle = "#1a52a6"; ctx.fillRect(x - 3, y - 1, w + 9, h + 5);
+      for (let yy = y - 2.5; yy < y + h + 1.5; yy += 4) {
+        ctx.fillStyle = "#c4a577"; ctx.beginPath(); ctx.roundRect(x - 4, yy, w + 8, 3.8, 1.9); ctx.fill();
+        ctx.fillStyle = "#ecdcbc"; ctx.fillRect(x - 3, yy + 0.5, w + 6, 2.4);
+        ctx.fillStyle = "#f6ead3"; ctx.fillRect(x - 3, yy + 0.5, w + 6, 0.8);
+        for (const ex of [x - 4, x + w + 4]) {
+          ctx.fillStyle = "#e7bf8f"; ctx.beginPath(); ctx.arc(ex, yy + 1.9, 1.9, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = "#a4845a"; ctx.fillRect(ex - 0.4, yy + 1.5, 1, 1);
+        }
+      }
+      ctx.fillStyle = "#963c19";
+      for (const rx of [x - 1.5, x + w + 0.5]) ctx.fillRect(rx, y - 2.5, 1.2, h + 5);
+    } else if (kind === "surf") {
+      const cy = y + h / 2;
+      const board = () => {
+        ctx.beginPath();
+        ctx.moveTo(x - 7, cy);
+        ctx.bezierCurveTo(x - 7, y - 9, x + w * 0.75, y - 9, x + w + 14, cy);
+        ctx.bezierCurveTo(x + w * 0.75, y + h + 9, x - 7, y + h + 9, x - 7, cy);
+      };
+      ctx.save(); ctx.translate(1, 1.5); ctx.fillStyle = "#1a52a6"; board(); ctx.fill(); ctx.restore();
+      ctx.fillStyle = "#2567b9"; board(); ctx.fill();
+      ctx.save(); ctx.translate(0, 0); ctx.scale(1, 1);
+      ctx.fillStyle = "#fffaf0";
+      ctx.beginPath();
+      ctx.moveTo(x - 6, cy);
+      ctx.bezierCurveTo(x - 6, y - 8, x + w * 0.75, y - 8, x + w + 12, cy);
+      ctx.bezierCurveTo(x + w * 0.75, y + h + 8, x - 6, y + h + 8, x - 6, cy);
+      ctx.fill();
+      ctx.clip();
+      ctx.fillStyle = "#e8473b"; ctx.fillRect(x - 4.5, y - 5, 1.6, h + 10);
+      ctx.fillStyle = "#ffd23f"; ctx.fillRect(x - 2.4, y - 5, 1.2, h + 10);
+      ctx.fillStyle = "#e8473b"; ctx.fillRect(x + w + 4, y - 5, 1.2, h + 10);
+      ctx.fillStyle = "#e4f2fc"; ctx.fillRect(x - 6, cy - 0.3, w + 18, 0.7);
+      ctx.restore();
+    } else if (kind === "boat") {
+      const hull = (g) => {
+        const cy = y + h / 2, top = y - 5 + g, bot = y + h + 5 - g;
+        ctx.beginPath();
+        ctx.moveTo(x - 7 + g, cy);
+        ctx.bezierCurveTo(x - 7 + g, top - 1, x + w * 0.2, top, x + w * 0.55, top);
+        ctx.bezierCurveTo(x + w * 0.85, top, x + w + 9 - g, cy - h * 0.2, x + w + 13 - g * 1.5, cy);
+        ctx.bezierCurveTo(x + w + 9 - g, cy + h * 0.2, x + w * 0.85, bot, x + w * 0.55, bot);
+        ctx.bezierCurveTo(x + w * 0.2, bot, x - 7 + g, bot + 1, x - 7 + g, cy);
+      };
+      // вёсла
+      ctx.strokeStyle = "#a4845a"; ctx.lineWidth = 1.2;
+      for (const s2 of [-1, 1]) {
+        const oy = s2 < 0 ? y - 4 : y + h + 4;
+        ctx.beginPath(); ctx.moveTo(x + w * 0.35, oy); ctx.lineTo(x + w * 0.2, oy + s2 * 8); ctx.stroke();
+        ctx.fillStyle = "#c4a577"; ctx.beginPath(); ctx.ellipse(x + w * 0.17, oy + s2 * 9.5, 1.4, 2.4, 0.3 * s2, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.save(); ctx.translate(1, 1.5); ctx.fillStyle = "#1a52a6"; hull(0); ctx.fill(); ctx.restore();
+      ctx.fillStyle = "#c0501f"; hull(0); ctx.fill();
+      ctx.fillStyle = "#ecdcbc"; hull(1.5); ctx.fill();
+      ctx.save(); hull(1.5); ctx.clip();
+      ctx.fillStyle = "#f6ead3";
+      for (let yy = y - 2; yy < y + h + 3; yy += 3) ctx.fillRect(x - 8, yy, w + 20, 1);
+      ctx.fillStyle = "#a4845a";
+      ctx.fillRect(x - 3, y - 6, 1.8, h + 12);
+      ctx.fillRect(x + w + 3, y - 6, 1.8, h + 12);
+      ctx.restore();
     }
   }
 
@@ -448,16 +556,14 @@
     ctx.fillRect(x, y + h - 1, w, 1);
   }
 
-  function portrait(ctx, r) {
-    const cx = r.x + r.w / 2, cy = r.y + r.h / 2, rx = r.w / 2, ry = r.h / 2;
-    const rings = [["#e8473b", 0], ["#ffd23f", 1.4], ["#fffaf0", 2.6], ["#e8473b", 3.4]];
-    for (const [c, inset] of rings) {
-      ctx.fillStyle = c;
-      ctx.beginPath(); ctx.ellipse(cx, cy, rx - inset, ry - inset, 0, 0, Math.PI * 2); ctx.fill();
-    }
+  // ——— сувенирный магнит: литая рамка с фаской, приклеенные ракушки, блик на фото ———
+  const magnetWindow = (r) => ({ x: r.x + 5, y: r.y + 5, w: r.w - 10, h: r.h - 10 });
+
+  function magnetPhoto(ctx, r) {
+    const { x: ix, y: iy, w: iw, h: ih } = magnetWindow(r);
     ctx.save();
-    ctx.beginPath(); ctx.ellipse(cx, cy, rx - 4.4, ry - 4.4, 0, 0, Math.PI * 2); ctx.clip();
-    const ix = cx - rx, iy = cy - ry, iw = r.w, ih = r.h;
+    ctx.beginPath(); ctx.roundRect(ix, iy, iw, ih, 3); ctx.clip();
+    const cx = ix + iw / 2, cy = iy + ih / 2;
     if (photo) {
       const s = Math.max(iw / photo.width, ih / photo.height);
       const pw = photo.width * s, ph = photo.height * s;
@@ -468,43 +574,118 @@
       const bg = ctx.createLinearGradient(0, iy, 0, iy + ih);
       bg.addColorStop(0, "#5ea6e4"); bg.addColorStop(0.62, "#9fcff3"); bg.addColorStop(0.63, "#3380cb"); bg.addColorStop(1, "#2567b9");
       ctx.fillStyle = bg; ctx.fillRect(ix, iy, iw, ih);
-      const u = iw / 36;
+      const u = iw / 30;
+      const hy = cy + 2 * u;
       ctx.fillStyle = "#5a3320";
-      ctx.beginPath(); ctx.ellipse(cx, cy + 3 * u, 11 * u, 12 * u, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(cx, hy + 3 * u, 11 * u, 12 * u, 0, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = "#e8473b";
-      ctx.beginPath(); ctx.ellipse(cx, iy + ih + 2 * u, 17 * u, 12 * u, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(cx, iy + ih + 2 * u, 17 * u, 10 * u, 0, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = "#f2c29b";
-      ctx.fillRect(cx - 3 * u, cy + 6 * u, 6 * u, 6 * u);
-      ctx.beginPath(); ctx.ellipse(cx, cy + 1 * u, 8 * u, 10 * u, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillRect(cx - 3 * u, hy + 6 * u, 6 * u, 6 * u);
+      ctx.beginPath(); ctx.ellipse(cx, hy + 1 * u, 8 * u, 10 * u, 0, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = "#101010";
-      ctx.beginPath(); ctx.roundRect(cx - 8 * u, cy - 1 * u, 7 * u, 4.5 * u, 1.5 * u); ctx.fill();
-      ctx.beginPath(); ctx.roundRect(cx + 1 * u, cy - 1 * u, 7 * u, 4.5 * u, 1.5 * u); ctx.fill();
-      ctx.fillRect(cx - 2 * u, cy, 4 * u, 1 * u);
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(cx - 6.5 * u, cy, 1.2 * u, 1.2 * u); ctx.fillRect(cx + 2.5 * u, cy, 1.2 * u, 1.2 * u);
+      ctx.beginPath(); ctx.roundRect(cx - 8 * u, hy - 1 * u, 7 * u, 4.5 * u, 1.5 * u); ctx.fill();
+      ctx.beginPath(); ctx.roundRect(cx + 1 * u, hy - 1 * u, 7 * u, 4.5 * u, 1.5 * u); ctx.fill();
+      ctx.fillRect(cx - 2 * u, hy, 4 * u, 1 * u);
       ctx.fillStyle = "#c7302b";
-      ctx.beginPath(); ctx.ellipse(cx, cy + 6.5 * u, 2.6 * u, 1.3 * u, 0, 0, Math.PI); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(cx, hy + 6.5 * u, 2.6 * u, 1.3 * u, 0, 0, Math.PI); ctx.fill();
       ctx.fillStyle = "#e9d29a";
-      ctx.beginPath(); ctx.ellipse(cx, cy - 7 * u, 16 * u, 3.6 * u, -0.08, 0, Math.PI * 2); ctx.fill();
-      ctx.beginPath(); ctx.ellipse(cx, cy - 10 * u, 8.5 * u, 6 * u, 0, Math.PI, 0); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(cx, hy - 7 * u, 16 * u, 3.6 * u, -0.08, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(cx, hy - 10 * u, 8.5 * u, 6 * u, 0, Math.PI, 0); ctx.fill();
       ctx.fillStyle = "#c9a45e";
-      ctx.fillRect(cx - 8.5 * u, cy - 10.5 * u, 17 * u, 2 * u);
+      ctx.fillRect(cx - 8.5 * u, hy - 10.5 * u, 17 * u, 2 * u);
       ctx.fillStyle = "#e8473b";
-      ctx.fillRect(cx - 8.5 * u, cy - 10.5 * u, 17 * u, 1.2 * u);
+      ctx.fillRect(cx - 8.5 * u, hy - 10.5 * u, 17 * u, 1.2 * u);
     }
     ctx.restore();
   }
 
-  function script(ctx, r, text, style) {
+  function wavyRect(ctx, x, y, w, h, grow) {
+    ctx.beginPath();
+    ctx.roundRect(x - grow, y - grow, w + grow * 2, h + grow * 2, 5 + grow);
+    const step = 3.6, rad = 1.9 + grow;
+    for (let px = x + 4; px < x + w - 3; px += step) {
+      ctx.moveTo(px + rad, y); ctx.arc(px, y, rad, 0, Math.PI * 2);
+      ctx.moveTo(px + rad, y + h); ctx.arc(px, y + h, rad, 0, Math.PI * 2);
+    }
+    for (let py = y + 4; py < y + h - 3; py += step) {
+      ctx.moveTo(x + rad, py); ctx.arc(x, py, rad, 0, Math.PI * 2);
+      ctx.moveTo(x + w + rad, py); ctx.arc(x + w, py, rad, 0, Math.PI * 2);
+    }
+    ctx.fill();
+  }
+
+  function lifebuoy(ctx, x, y, s) {
+    for (let i = 0; i < 8; i++) {
+      ctx.fillStyle = i % 2 ? "#fffaf0" : "#e8473b";
+      ctx.beginPath(); ctx.moveTo(x, y); ctx.arc(x, y, s, (i / 8) * Math.PI * 2, ((i + 1) / 8) * Math.PI * 2); ctx.closePath(); ctx.fill();
+    }
+    ctx.fillStyle = "#c9a45e";
+    ctx.beginPath(); ctx.arc(x, y, s * 0.45, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "#963c19"; ctx.lineWidth = 0.8;
+    ctx.beginPath(); ctx.arc(x, y, s, 0, Math.PI * 2); ctx.stroke();
+  }
+
+  function magnetFrame(ctx, r) {
+    const { x, y, w, h } = r;
+    const x0 = x + 1.5, y0 = y + 1.5, w0 = w - 3, h0 = h - 3;
+    // тень магнита на ткани
+    ctx.fillStyle = "#1b56ad";
+    ctx.save(); ctx.translate(1.2, 1.8); wavyRect(ctx, x0, y0, w0, h0, 0.8); ctx.restore();
+    // литая рамка с фаской
+    ctx.fillStyle = "#963c19"; wavyRect(ctx, x0, y0, w0, h0, 0.8);
+    ctx.fillStyle = "#c9a45e"; ctx.save(); ctx.translate(0.6, 0.6); wavyRect(ctx, x0, y0, w0, h0, 0); ctx.restore();
+    ctx.fillStyle = "#fcd9a0"; ctx.save(); ctx.translate(-0.4, -0.4); wavyRect(ctx, x0, y0, w0, h0, -0.2); ctx.restore();
+    ctx.fillStyle = "#e9d29a"; wavyRect(ctx, x0 + 0.4, y0 + 0.4, w0 - 0.8, h0 - 0.8, -0.6);
+    // песчинки в смоле
+    const gr = rng(77);
+    for (let yy = Math.floor(y0); yy < y0 + h0; yy++)
+      for (let xx = Math.floor(x0); xx < x0 + w0; xx++) {
+        const v = gr();
+        if (v > 0.8) { ctx.fillStyle = v > 0.93 ? "#fcd9a0" : "#c9a45e"; ctx.fillRect(xx, yy, 1, 1); }
+      }
+    // вдавленное окно под фото: вырезаем, чтобы фото осталось видно
+    const win = magnetWindow(r);
+    ctx.save();
+    ctx.globalCompositeOperation = "destination-out";
+    ctx.beginPath(); ctx.roundRect(win.x, win.y, win.w, win.h, 3); ctx.fill();
+    ctx.restore();
+    ctx.fillStyle = "#6c2a12";
+    ctx.beginPath(); ctx.roundRect(win.x - 1, win.y - 1, win.w + 2, win.h + 2, 4);
+    ctx.roundRect(win.x, win.y, win.w, win.h, 3);
+    ctx.fill("evenodd");
+    ctx.fillStyle = "#fffaf0";
+    ctx.fillRect(win.x - 1, win.y + win.h + 1, win.w + 2, 1);
+    // блик на глянце
+    ctx.save();
+    ctx.beginPath(); ctx.roundRect(win.x, win.y, win.w, win.h, 3); ctx.clip();
+    ctx.fillStyle = "#ffffff";
+    for (let yy = Math.floor(win.y); yy < win.y + win.h; yy++)
+      for (let xx = Math.floor(win.x); xx < win.x + win.w; xx++) {
+        const d = (xx - win.x) + (yy - win.y) * 0.8;
+        const inBand = (d > 5 && d < 9) || (d > 11 && d < 12.5);
+        if (inBand && (xx + yy) % 2 === 0) ctx.fillRect(xx, yy, 1, 1);
+      }
+    ctx.restore();
+    // приклеенный декор
+    lifebuoy(ctx, x + 3.5, y + 5, 6);
+    star(ctx, x + w - 4, y + 4.5, 7.5, 0.35);
+    scallop(ctx, x + 8, y + h, 7, 0.2);
+    conch(ctx, x + w - 8, y + h - 2.5, 5, -0.45);
+    pebble(ctx, x + w * 0.52, y + h - 1, 2.6, 0.2);
+  }
+
+  function script(ctx, r, text, style, font) {
     const styles = {
       title: { fill: "#ffd23f", stroke: "#c7302b", shadow: "#1c2a5c" },
       name: { fill: "#fffaf0", stroke: "#1c2a5c", shadow: "#1c2a5c" },
       heading: { fill: "#ffd23f", stroke: "#c7302b", shadow: "#123f8c" },
     }[style || "title"];
+    const family = font || "Lobster";
     let size = r.h * 0.95;
-    ctx.font = `${size}px Lobster`;
+    ctx.font = `${size}px "${family}"`;
     const w = ctx.measureText(text).width;
-    if (w > r.w * 0.98) { size *= (r.w * 0.98) / w; ctx.font = `${size}px Lobster`; }
+    if (w > r.w * 0.98) { size *= (r.w * 0.98) / w; ctx.font = `${size}px "${family}"`; }
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     const x = r.x + r.w / 2, y = r.y + r.h * 0.52;
@@ -578,12 +759,39 @@
       palm(ctx, cols + 2, -6, Math.PI - 0.95, pw * 0.28, -0.8, 6);
     });
 
+    // маршрут: пунктир между островами, флажок на последнем
+    const isles = L.marks.filter((m) => m.kind === "panel" && m.el.dataset.print === "island").map((m) => m.r);
+    const mid = (q) => ({ x: q.x + q.w / 2, y: q.y + q.h / 2 });
+    const routeLine = () => stamp((ctx) => {
+      ctx.beginPath();
+      ctx.rect(0, 0, cols, rows);
+      for (const q of isles) ctx.ellipse(q.x + q.w / 2, q.y + q.h / 2, q.w / 2 + 6, q.h / 2 + 6.5, 0, 0, Math.PI * 2);
+      ctx.clip("evenodd");
+      ctx.strokeStyle = "#e8473b"; ctx.lineWidth = 1.3; ctx.setLineDash([2.5, 2]);
+      for (let i = 0; i < isles.length - 1; i++) {
+        const a = mid(isles[i]), b = mid(isles[i + 1]);
+        ctx.beginPath(); ctx.moveTo(a.x, a.y);
+        ctx.quadraticCurveTo((a.x + b.x) / 2 + (i % 2 ? -6 : 6), (a.y + b.y) / 2 + 3, b.x, b.y);
+        ctx.stroke();
+      }
+    });
+
     for (const m of L.marks) {
       if (m.kind === "panel") { stamp((ctx) => printPatch(ctx, m.r, m.el.dataset.print, Math.round(m.r.y * 7 + m.r.x))); block(m.r); }
       else if (m.kind === "ribbon") { stamp((ctx) => ribbon(ctx, m.r)); block(m.r); }
-      else if (m.kind === "photo") { stamp((ctx) => portrait(ctx, m.r), 2); block(m.r); }
-      else if (m.kind === "title") { stamp((ctx) => script(ctx, m.r, m.el.dataset.text, m.el.dataset.style)); block(m.r, 0); }
+      else if (m.kind === "photo") { stamp((ctx) => magnetPhoto(ctx, m.r), 2); stamp((ctx) => magnetFrame(ctx, m.r)); block(m.r); }
+      else if (m.kind === "title") { stamp((ctx) => script(ctx, m.r, m.el.dataset.text, m.el.dataset.style, m.el.dataset.font)); block(m.r, 0); }
       else if (m.kind === "avoid") block(m.r);
+    }
+    if (isles.length > 1) routeLine();
+    if (isles.length) {
+      const last = isles[isles.length - 1];
+      stamp((ctx) => {
+        const fx = last.x + last.w - 3, fy = last.y + 1;
+        ctx.fillStyle = "#5a3320"; ctx.fillRect(fx, fy - 8, 1, 9);
+        ctx.fillStyle = "#e8473b";
+        ctx.beginPath(); ctx.moveTo(fx + 1, fy - 8); ctx.lineTo(fx + 6, fy - 6.2); ctx.lineTo(fx + 1, fy - 4.4); ctx.fill();
+      });
     }
 
     // живой слой над горизонтом «Кейсов»: волны и дельфины
@@ -791,6 +999,8 @@
   }
 
 
+
+  window.towel = { rebuild: () => build() };
 
   let rt = 0, lastW = 0;
   addEventListener("resize", () => {

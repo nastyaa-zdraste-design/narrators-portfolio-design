@@ -57,14 +57,7 @@
   .palm-space { height: calc(var(--cell) * 17); }
   .px-title { height: calc(var(--cell) * 17); margin: 0; }
   .souvenir { margin: calc(var(--cell) * 4) auto 0; width: calc(var(--cell) * 38); text-align: center; }
-  .px-photo { width: calc(var(--cell) * 38); height: calc(var(--cell) * 46); margin: 0 auto; }
-  .ribbon {
-    display: inline-block; position: relative; margin-top: calc(var(--cell) * -3);
-    padding: 0 calc(var(--cell) * 2);
-    height: calc(var(--cell) * 6); line-height: calc(var(--cell) * 6);
-    font: 400 calc(var(--cell) * 2)/calc(var(--cell) * 6) "Press Start 2P", monospace;
-    color: var(--cream); white-space: nowrap; letter-spacing: .02em;
-  }
+  .px-photo { width: calc(var(--cell) * 40); height: calc(var(--cell) * 48); margin: 0 auto; }
   .name {
     margin: calc(var(--cell) * 4) 0 calc(var(--cell) * 2); text-align: center;
     font: 400 clamp(15px, 4.6vw, 26px)/1.2 "Press Start 2P", monospace; color: var(--cream);
@@ -88,13 +81,24 @@
   }
   .intro p { margin: 0; }
   .intro p + p { margin-top: 8px; }
-  .track ol { list-style: none; margin: 0; padding: 0; }
-  .track li { display: grid; grid-template-columns: 112px 1fr; gap: 10px; padding: 7px 0; border-top: 1px dashed rgba(28,42,92,.25); }
-  .track li:first-child { border-top: 0; padding-top: 0; }
-  .track time { font: 400 10px/2 "Press Start 2P", monospace; color: var(--red); }
-  .track b { font-weight: 700; }
 
   /* ——— море ——— */
+  .route { padding-top: calc(var(--cell) * 8); }
+  .stops { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: calc(var(--cell) * 9); }
+  .stop {
+    width: fit-content; max-width: 86%; min-width: 58%; display: flex; flex-direction: column; gap: 2px;
+    padding: calc(var(--cell) * 2.5) calc(var(--cell) * 4) calc(var(--cell) * 2.5) calc(var(--cell) * 9);
+  }
+  .stop:nth-child(even) { margin-left: auto; }
+  .stop time { font: 400 10px/1.6 "Press Start 2P", monospace; color: var(--red); }
+  .stop b { font-weight: 700; }
+  .case-list { display: flex; flex-direction: column; gap: calc(var(--cell) * 13); padding: calc(var(--cell) * 3) 0 calc(var(--cell) * 20); }
+  .case { margin-bottom: 0; }
+  .case[data-print="mattress"] { padding-left: calc(var(--cell) * 8); }
+  .case[data-print="note"] { padding-top: calc(var(--cell) * 4); padding-bottom: calc(var(--cell) * 4); }
+  .case[data-print="raft"] { padding-left: calc(var(--cell) * 4); padding-right: calc(var(--cell) * 4); }
+  .case[data-print="surf"] { padding: calc(var(--cell) * 2) calc(var(--cell) * 12) calc(var(--cell) * 2) calc(var(--cell) * 6); }
+  .case[data-print="boat"] { padding: calc(var(--cell) * 2) calc(var(--cell) * 8) calc(var(--cell) * 2) calc(var(--cell) * 4); }
   .horizon { height: 0; }
   .vista { height: calc(var(--cell) * 34); }
   .px-heading { height: calc(var(--cell) * 21); margin: 0 0 calc(var(--cell) * 3); }
@@ -149,17 +153,17 @@
       gap: calc(var(--cell) * 8); align-items: center; margin-top: calc(var(--cell) * 3);
     }
     .souvenir { margin: 0; width: auto; }
-    .px-photo { width: calc(var(--cell) * 44); height: calc(var(--cell) * 54); }
     .name { text-align: left; margin-top: 0; }
     .role { text-align: left; }
     .hero-text .panel { margin-bottom: 0; }
-    .track ol { display: grid; grid-template-columns: 1fr 1fr; column-gap: calc(var(--cell) * 6); }
-    .track li:nth-child(2) { border-top: 0; padding-top: 0; }
-    .track { margin-top: calc(var(--cell) * 6); }
+    .px-photo { width: calc(var(--cell) * 46); height: calc(var(--cell) * 56); }
+    .stops { display: grid; grid-template-columns: 1fr 1fr; column-gap: calc(var(--cell) * 14); row-gap: calc(var(--cell) * 6); }
+    .stop { justify-self: center; min-width: 70%; max-width: 100%; }
+    .stop:nth-child(even) { margin-top: calc(var(--cell) * 12); }
     .px-heading { height: calc(var(--cell) * 22); }
-    .case-list { display: grid; grid-template-columns: 1fr 1fr; column-gap: calc(var(--cell) * 6); align-items: start; }
+    .case-list { display: grid; grid-template-columns: 1fr 1fr; column-gap: calc(var(--cell) * 16); row-gap: calc(var(--cell) * 12); align-items: start; }
     .case-list .case { width: 100%; margin-left: 0; margin-right: 0; }
-    .case-list .case:nth-child(even) { margin-top: calc(var(--cell) * 12); }
+    .case-list .case:nth-child(even) { margin-top: calc(var(--cell) * 16); }
     .beach-row { display: grid; grid-template-columns: 1fr 230px; gap: calc(var(--cell) * 8); align-items: center; }
     .beach-row .care { margin: 0; }
     .contacts { margin-bottom: 0; }
@@ -168,8 +172,7 @@
     body { font-size: 14px; }
     .content { padding: 0 calc(var(--cell) * 4); }
     .case { width: 100%; }
-    .track li { grid-template-columns: 1fr; gap: 0; }
-    .care { margin-right: auto; }
+      .care { margin-right: auto; }
   }
 </style>
 </head>
@@ -187,8 +190,7 @@
           <p class="px-title" data-px="title" data-text="Москва 2026"><span class="sr">Москва 2026</span></p>
           <div class="hero">
           <figure class="souvenir">
-            <div class="px-photo" data-px="photo" data-src="" role="img" aria-label="Портрет Насти на курорте"></div>
-            <figcaption class="ribbon" data-px="ribbon">Сувенир с курорта</figcaption>
+            <div class="px-photo" data-px="photo" data-src="" role="img" aria-label="Магнитик с портретом Насти"></div>
           </figure>
           <div class="hero-text">
           <h1 class="name">Настя Сидорова</h1>
@@ -202,24 +204,26 @@
           </div>
         </header>
 
-        <section class="panel track" data-px="panel" data-print="cloud">
-          <p class="label">Маршрут</p>
-          <ol>
-            <li><time>2025 — сейчас</time><span><b>Story Hunters</b> · креатор-сценаристка</span></li>
-            <li><time>2023 — 2025</time><span><b>Креативный продюсер и сценаристка</b> · веб-сериалы для VK, док-фильм для КАМАЗа</span></li>
-            <li><time>2022 — 2024</time><span><b>Branda Films</b> · креатор и сценаристка</span></li>
-            <li><time>2025</time><span><b>Московская школа кино</b> · «Креативное продюсирование»</span></li>
+
+        <div class="horizon" data-px="horizon"></div>
+
+        <section class="route" aria-labelledby="route-h">
+          <h2 id="route-h" class="px-heading" data-px="title" data-style="heading" data-text="Маршрут"><span class="sr">Маршрут</span></h2>
+          <ol class="stops">
+            <li class="stop" data-px="panel" data-print="island"><time>2022 — 2024</time><b>Branda Films</b><span>креатор и сценаристка</span></li>
+            <li class="stop" data-px="panel" data-print="island"><time>2023 — 2025</time><b>Креативный продюсер и сценаристка</b><span>веб-сериалы для VK, док-фильм для КАМАЗа</span></li>
+            <li class="stop" data-px="panel" data-print="island"><time>2025</time><b>Московская школа кино</b><span>«Креативное продюсирование»</span></li>
+            <li class="stop" data-px="panel" data-print="island"><time>2025 — сейчас</time><b>Story Hunters</b><span>креатор-сценаристка</span></li>
           </ol>
         </section>
 
-        <div class="horizon" data-px="horizon"></div>
 
         <section class="cases" aria-labelledby="cases-h">
           <div class="vista" data-px="vista"></div>
           <h2 id="cases-h" class="px-heading" data-px="title" data-style="heading" data-text="Кейсы"><span class="sr">Кейсы</span></h2>
 
           <div class="case-list">
-          <article class="panel case" data-px="panel" data-print="lagoon">
+          <article class="panel case" data-px="panel" data-print="mattress">
             <p class="client">VK</p>
             <h3>«Открытый код»</h3>
             <dl>
@@ -230,7 +234,7 @@
             <a href="https://vk.com/video/playlist/-92204627_83" target="_blank" rel="noopener">Смотреть</a>
           </article>
 
-          <article class="panel case" data-px="panel" data-print="lagoon">
+          <article class="panel case" data-px="panel" data-print="note">
             <p class="client">Сбер · Школа 21</p>
             <h3>Промо к открытию IT-школы</h3>
             <dl>
@@ -240,7 +244,7 @@
             <a href="https://drive.google.com/file/d/1CWKqxCIYh46ycRhd-dU0OdoUuWP2zm_2/view" target="_blank" rel="noopener">Смотреть</a>
           </article>
 
-          <article class="panel case" data-px="panel" data-print="lagoon">
+          <article class="panel case" data-px="panel" data-print="raft">
             <p class="client">Город Арзамас</p>
             <h3>Рекламный ролик города</h3>
             <dl>
@@ -250,7 +254,7 @@
             <a href="https://vimeo.com/1007658703" target="_blank" rel="noopener">Смотреть</a>
           </article>
 
-          <article class="panel case" data-px="panel" data-print="lagoon">
+          <article class="panel case" data-px="panel" data-print="surf">
             <p class="client">Spirit Fitness</p>
             <h3>«Это в твоём духе»</h3>
             <dl>
@@ -260,7 +264,7 @@
             <a href="https://vkvideo.ru/video-146452013_456242235" target="_blank" rel="noopener">Смотреть</a>
           </article>
 
-          <article class="panel case" data-px="panel" data-print="lagoon">
+          <article class="panel case" data-px="panel" data-print="boat">
             <p class="client">Росатом</p>
             <h3>Клип «Я студент Росатом»</h3>
             <dl>
