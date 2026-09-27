@@ -761,6 +761,19 @@
     one(w * 0.28, 0.2);
   }
 
+  function drawSeeds(ctx, n, spread, seed) {
+    const r = rng(seed);
+    for (let i = 0; i < n; i++) {
+      const a = r() * Math.PI * 2, d = Math.pow(r(), 0.7) * spread;
+      ctx.save(); ctx.translate(Math.cos(a) * d, Math.sin(a) * d * 0.7); ctx.rotate(r() * Math.PI * 2); ctx.scale(1.6, 1.6);
+      ctx.fillStyle = "#c4a577"; ctx.beginPath(); ctx.ellipse(0.4, 0.6, 2.3, 1.2, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#101010"; ctx.beginPath(); ctx.moveTo(-2.4, 0); ctx.quadraticCurveTo(0, -1.6, 2.2, -0.2); ctx.quadraticCurveTo(0, 1.5, -2.4, 0); ctx.fill();
+      ctx.fillStyle = "#cdc6c0"; ctx.fillRect(-1.4, -0.35, 2.6, 0.6);
+      if (r() > 0.5) { ctx.fillStyle = "#80797f"; ctx.fillRect(-1, 0.45, 1.8, 0.4); }
+      ctx.restore();
+    }
+  }
+
   function drawStrawHat(ctx, w) {
     const R = w / 2, bh = w * 0.16, cw = w * 0.5, ch = w * 0.36, by = w * 0.12;
     ctx.fillStyle = "#c4a577"; ctx.beginPath(); ctx.ellipse(1, by + 1.5, R, bh, 0, 0, Math.PI * 2); ctx.fill();
@@ -837,27 +850,34 @@
     }
     const shirt = (cx, cy, w, rot) => {
       place(cx, cy, w, w, rot, (ctx) => drawTshirt(ctx, w));
-      printText(L, cx - Math.sin(rot) * w * 0.06, cy + Math.cos(rot) * w * 0.06, rot, 'Я <span style="color:#e8473b">❤</span><br>NARRATORS',
-        `font: 400 ${Math.round(w * L.cell * 0.12)}px/1.1 "Russo One", sans-serif; color: #1c2a5c;`);
+      printText(L, cx - Math.sin(rot) * w * 0.08, cy + Math.cos(rot) * w * 0.08, rot, 'Я <span style="color:#e8473b">❤</span><br>NARRATORS',
+        `font: 400 ${Math.round(w * L.cell * 0.105)}px/1.15 "Russo One", sans-serif; color: #1c2a5c;`);
     };
+    const seeds = (cx, cy, sz) => place(cx, cy, sz * 2.2, sz * 1.6, 0, (ctx) => drawSeeds(ctx, 11, sz, 5));
+    const flip = (cx, cy, w) => place(cx, cy, w, w * 1.1, 0.3, (ctx) => drawFlipflops(ctx, w));
+    const hat = (cx, cy, w) => place(cx, cy, w, w * 0.5, -0.08, (ctx) => drawStrawHat(ctx, w));
+    const mid = (q) => q.y + q.h / 2;
     if (twoCol) {
-      put("cup", vk.x + 10, B(vk) + 6, 18 * km, -0.15);
-      put("seeds", vk.x + vk.w * 0.55, B(vk) + 7, 30 * km, 0);
-      put("cap", np.x + np.w * 0.8, np.y - 7, 34 * km, 0.12);
-      put("newspaper", arz.x + arz.w * 0.9, B(arz) + 8, 46 * km, -0.1);
-      put("corn", gpn.x + gpn.w * 0.8, gpn.y + gpn.h * 0.5, 40 * km, -0.35);
-      shirt(np.x + np.w * 0.32, B(np) + 20, 40 * km, 0.12);
-      { const w = 22 * km; place(np.x + np.w * 0.82, B(np) + 18, w, w * 1.1, 0.3, (ctx) => drawFlipflops(ctx, w)); }
-      { const w = 34 * km; place(gpn.x + 14, B(gpn) + 12, w, w * 0.5, -0.08, (ctx) => drawStrawHat(ctx, w)); }
+      // ряд 1: VK слева, крокодил тянется от «Кейсов» к «Школе 21» (ряд 2 справа)
+      // ряд 2: Сбер справа — слева кукуруза
+      put("corn", cols * 0.2, mid(sber) + 2, 36 * km, -0.3);
+      put("cup", cols * 0.4, mid(sber), 15 * km, 0.12);
+      // ряд 3: Арзамас слева — справа фуражка
+      put("cap", cols * 0.66, mid(arz), 32 * km, 0.12);
+      // ряд 4: Нацприоритеты справа — слева газета с воблой
+      put("newspaper", cols * 0.25, mid(np), 50 * km, -0.1);
+      // ряд 5: Газпромнефть слева — справа футболка, вьетнамки, шляпа
+      shirt(cols * 0.62, mid(gpn) + 2, 38 * km, 0.12);
+      flip(cols * 0.84, mid(gpn) - 4, 20 * km);
+      hat(cols * 0.84, B(gpn) + 4, 30 * km);
     } else {
-      put("cup", cols - 11, B(vk) + 4, 15 * km, 0.15);
-      put("seeds", cols - 14, B(arz) + 5, 24 * km, 0);
-      { const w = 32 * km; place(cols - 18, arz.y + 2, w, w * 0.5, 0.1, (ctx) => drawStrawHat(ctx, w)); }
-      put("newspaper", cols * 0.32, B(sber) + 7, 40 * km, -0.1);
-      put("cap", np.x + np.w * 0.8, np.y - 6, 30 * km, 0.12);
-      put("corn", gpn.x + gpn.w * 0.72, gpn.y + gpn.h * 0.55, 36 * km, -0.35);
-      shirt(cols * 0.3, B(gpn) + 16, 36 * km, 0.1);
-      { const w = 20 * km; place(cols * 0.76, B(gpn) + 14, w, w * 1.1, 0.3, (ctx) => drawFlipflops(ctx, w)); }
+      put("cup", cols - 10, B(vk) + 5, 14 * km, 0.15);
+      put("corn", cols * 0.5, B(sber) + 7, 34 * km, -0.2);
+      put("cap", cols * 0.72, B(arz) + 6, 28 * km, 0.12);
+      hat(cols * 0.22, B(arz) + 6, 26 * km);
+      put("newspaper", cols * 0.5, B(np) + 12, 44 * km, -0.1);
+      shirt(cols * 0.3, B(gpn) + 15, 32 * km, 0.1);
+      flip(cols * 0.74, B(gpn) + 13, 18 * km);
     }
     return boxes;
   }
@@ -891,7 +911,7 @@
     const avoid = L.marks.filter((m) => m.kind === "panel" || m.kind === "avoid" || m.kind === "title").map((m) => m.r);
 
     avoid.push(...beachItems(L, stamp));
-    const u = Math.min(9, Math.max(5, cols / 11));
+    const u = Math.min(5, Math.max(3.5, cols / 22));
     const sandTop = L.shells.y + 1, sandBottom = rows - 4;
     const r = rng(42), shells = [];
     const free = (x, y, s) =>
@@ -899,21 +919,11 @@
       avoid.every((a) => x < a.x - s || x > a.x + a.w + s || y < a.y - s || y > a.y + a.h + s) &&
       shells.every((o) => Math.hypot(o.x - x, o.y - y) > (o.s + s) * 1.9);
     const kindsOf = [conch, scallop, pebble, star, scallop, pebble, conch, pebble, star];
-    const target = Math.round(((sandBottom - sandTop) * cols) / (u * u * 8.5));
+    const target = Math.round(((sandBottom - sandTop) * cols) / (u * u * 30));
     for (let tries = 0; tries < 900 && shells.length < target; tries++) {
       const s = u * (0.45 + r() * 0.4);
       const x = r() * cols, y = sandTop + r() * (sandBottom - sandTop);
-      if (free(x, y, s)) {
-        const img = spriteByName("shell" + (shells.length % 5));
-        const draw = img ? (ctx, sx, sy, ss, rot) => {
-          const w = ss * 1.7, h = w * img.height / img.width;
-          ctx.save(); ctx.translate(sx, sy); ctx.rotate(rot);
-          ctx.drawImage(tinted(img, "#c4a577"), -w / 2 + 0.8, -h / 2 + 1.2, w, h);
-          ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
-          ctx.drawImage(img, -w / 2, -h / 2, w, h); ctx.restore();
-        } : kindsOf[shells.length % kindsOf.length];
-        shells.push({ x, y, s, rot: (r() - 0.5) * 2, draw });
-      }
+      if (free(x, y, s)) shells.push({ x, y, s, rot: (r() - 0.5) * 2, draw: kindsOf[shells.length % kindsOf.length] });
     }
     stamp((ctx) => {
       for (const sh of shells) sh.draw(ctx, sh.x, sh.y, sh.s, sh.rot);
