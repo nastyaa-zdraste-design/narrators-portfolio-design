@@ -98,7 +98,7 @@
   .stop b { font-weight: 700; }
   .stop a { color: inherit; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
   .stop a:hover, .stop a:focus-visible { text-decoration-thickness: 2px; outline: none; }
-  .case-list { display: flex; flex-direction: column; gap: calc(var(--cell) * 26); padding: calc(var(--cell) * 3) 0 calc(var(--cell) * 16); }
+  .case-list { display: flex; flex-direction: column; gap: calc(var(--cell) * 26); padding: calc(var(--cell) * 3) 0 calc(var(--cell) * 44); }
   .case { margin-bottom: 0; }
   .case { padding: calc(var(--cell) * 3) calc(var(--cell) * 2); }
   .horizon { height: 0; }
@@ -131,7 +131,11 @@
   /* ——— песок ——— */
   .shore { height: calc(var(--cell) * 4); }
   .shells { height: calc(var(--cell) * 10); }
-  .sand-end { height: calc(var(--cell) * 16); }
+  .sand-end { height: calc(var(--cell) * 40); }
+  .print-text {
+    position: absolute; z-index: 2; pointer-events: none; white-space: nowrap;
+    transform-origin: 50% 50%; text-align: center; line-height: 1;
+  }
   .hero { display: flex; flex-direction: column; }
   .beach-row { display: flex; flex-direction: column; align-items: center; gap: calc(var(--cell) * 8); }
   .contacts { text-align: center; margin-bottom: calc(var(--cell) * 4); }
@@ -176,6 +180,7 @@
     .contacts { margin-bottom: 0; }
   }
   @media (max-width: 480px) {
+    .sand-end { height: calc(var(--cell) * 72); }
     body { font-size: 14px; }
     .content { padding: 0 calc(var(--cell) * 4); }
     .case { width: 100%; }
@@ -234,15 +239,13 @@
         <div class="shore" data-px="shore"></div>
         <div class="shells" data-px="shells"></div>
         <section class="cases" aria-labelledby="cases-h">
-          <span hidden data-beach="croc" data-sprite="sprites/croc.png" data-w="58"></span>
-          <span hidden data-beach="corn" data-sprite="sprites/corn.png" data-w="34"></span>
-          <span hidden data-beach="cap" data-sprite="sprites/cap.png" data-w="30"></span>
-          <span hidden data-beach="churchkhela" data-sprite="sprites/churchkhela.png" data-w="16"></span>
-          <span hidden data-beach="cup" data-sprite="sprites/cup.png" data-w="15"></span>
-          <h2 id="cases-h" class="px-heading" data-px="title" data-style="heading" data-text="Кейсы"><span class="sr">Кейсы</span></h2>
+          <span hidden data-sprite="sprites/croc.png"></span>
+          <span hidden data-sprite="sprites/cap.png"></span>
+          <span hidden data-sprite="sprites/cup.png"></span>
+          <h2 id="cases-h" class="px-heading cases-title" data-px="title" data-style="heading" data-text="Кейсы"><span class="sr">Кейсы</span></h2>
 
           <div class="case-list">
-            <article class="panel case" data-px="panel" data-print="bare">
+            <article id="case-vk" class="panel case" data-px="panel" data-print="bare">
               <div class="case-head">
                 <h3>Веб-сериал для VK «Открытый код»</h3>
               </div>
@@ -251,7 +254,7 @@
               <a class="watch" href="https://vk.com/video/playlist/-92204627_83" target="_blank" rel="noopener">Смотреть</a>
             </article>
 
-            <article class="panel case" data-px="panel" data-print="bare">
+            <article id="case-sber" class="panel case" data-px="panel" data-print="bare">
               <div class="case-head">
                 <h3>Промо для Сбера «Школа 21»</h3>
               </div>
@@ -259,7 +262,7 @@
               <a class="watch" href="https://drive.google.com/file/d/1CWKqxCIYh46ycRhd-dU0OdoUuWP2zm_2/view" target="_blank" rel="noopener">Смотреть</a>
             </article>
 
-            <article class="panel case" data-px="panel" data-print="bare">
+            <article id="case-arz" class="panel case" data-px="panel" data-print="bare">
               <div class="case-head">
                 <h3>Реклама для города Арзамас</h3>
               </div>
@@ -268,7 +271,7 @@
               <a class="watch" href="https://vimeo.com/1007658703" target="_blank" rel="noopener">Смотреть</a>
             </article>
 
-            <article class="panel case" data-px="panel" data-print="bare">
+            <article id="case-np" class="panel case" data-px="panel" data-print="bare">
               <div class="case-head">
                 <h3>Промо для АНО «Национальные приоритеты» «Дропперы»</h3>
               </div>
@@ -276,7 +279,7 @@
               <a class="watch" href="https://vimeo.com/1211929643/6e88a3ade3" target="_blank" rel="noopener">Смотреть</a>
             </article>
 
-            <article class="panel case" data-px="panel" data-print="bare">
+            <article id="case-gpn" class="panel case" data-px="panel" data-print="bare">
               <div class="case-head">
                 <h3>Эксплейнер для Газпромнефти</h3>
               </div>

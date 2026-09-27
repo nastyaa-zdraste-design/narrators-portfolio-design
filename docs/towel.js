@@ -716,6 +716,213 @@
   }
 
   // ——— сборка статичного слоя ———
+  // ——— пляжные вещи (рисуются в клетках, центр в 0,0) ———
+  function drawCorn(ctx, w) {
+    const t = w * 0.3, L = w / 2;
+    const body = () => { ctx.beginPath(); ctx.roundRect(-L, -t / 2, w, t, t / 2); };
+    ctx.fillStyle = "#ec9443"; body(); ctx.fill();
+    ctx.save(); body(); ctx.clip();
+    ctx.fillStyle = "#ffd23f"; ctx.fillRect(-L, -t / 2, w, t * 0.78);
+    ctx.fillStyle = "#fff08a"; ctx.fillRect(-L, -t / 2, w, t * 0.22);
+    // зёрна рядами
+    for (let row = 0; row < 5; row++) {
+      const y = -t / 2 + (row + 0.5) * (t / 5);
+      for (let x = -L + (row % 2); x < L; x += 2) {
+        ctx.fillStyle = row === 4 ? "#dc6e2e" : row === 0 ? "#fff08a" : "#ffb02e";
+        ctx.fillRect(x + 1, y - 0.2, 1, 1);
+      }
+    }
+    ctx.restore();
+    // листья у основания
+    ctx.fillStyle = "#5dbb3c";
+    ctx.beginPath(); ctx.moveTo(-L + 2, -t * 0.2); ctx.quadraticCurveTo(-L - w * 0.12, -t * 0.9, -L - w * 0.22, -t * 0.35); ctx.quadraticCurveTo(-L - w * 0.05, -t * 0.25, -L + 2, t * 0.1); ctx.fill();
+    ctx.fillStyle = "#93d23f";
+    ctx.beginPath(); ctx.moveTo(-L + 2, t * 0.2); ctx.quadraticCurveTo(-L - w * 0.12, t * 0.9, -L - w * 0.24, t * 0.45); ctx.quadraticCurveTo(-L - w * 0.05, t * 0.25, -L + 2, -t * 0.05); ctx.fill();
+  }
+
+  function drawTshirt(ctx, w) {
+    const h = w * 0.95, s = w / 2;
+    const shape = () => {
+      ctx.beginPath();
+      ctx.moveTo(-s * 0.36, -h / 2);
+      ctx.quadraticCurveTo(0, -h / 2 + w * 0.1, s * 0.36, -h / 2);
+      ctx.lineTo(s, -h / 2 + w * 0.14);
+      ctx.lineTo(s * 0.82, -h / 2 + w * 0.36);
+      ctx.lineTo(s * 0.6, -h / 2 + w * 0.3);
+      ctx.lineTo(s * 0.62, h / 2);
+      ctx.lineTo(-s * 0.62, h / 2);
+      ctx.lineTo(-s * 0.6, -h / 2 + w * 0.3);
+      ctx.lineTo(-s * 0.82, -h / 2 + w * 0.36);
+      ctx.lineTo(-s, -h / 2 + w * 0.14);
+      ctx.closePath();
+    };
+    ctx.fillStyle = "#c4a577"; ctx.save(); ctx.translate(1.2, 1.8); shape(); ctx.fill(); ctx.restore();
+    ctx.fillStyle = "#a4845a"; ctx.save(); ctx.scale(1.04, 1.03); shape(); ctx.fill(); ctx.restore();
+    ctx.fillStyle = "#ffffff"; shape(); ctx.fill();
+    ctx.fillStyle = "#e4dccd";
+    ctx.fillRect(-s * 0.6, h * 0.1, 1, h * 0.35);
+    ctx.fillRect(s * 0.2, -h * 0.05, 1, h * 0.4);
+    ctx.strokeStyle = "#e8473b"; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(-s * 0.36, -h / 2); ctx.quadraticCurveTo(0, -h / 2 + w * 0.1, s * 0.36, -h / 2); ctx.stroke();
+  }
+
+  function drawNewspaper(ctx, w) {
+    const h = w * 0.68;
+    ctx.fillStyle = "#c4a577"; ctx.fillRect(-w / 2 + 1, -h / 2 + 1.5, w, h);
+    ctx.fillStyle = "#ece8de"; ctx.fillRect(-w / 2, -h / 2, w, h);
+    ctx.fillStyle = "#cfd8d6"; ctx.fillRect(0, -h / 2, 1, h);
+    ctx.fillStyle = "#1c2a5c"; ctx.fillRect(-w / 2 + 2, -h / 2 + 2, w - 4, 5);
+    ctx.fillStyle = "#8d8893";
+    for (let y = -h / 2 + 7; y < h / 2 - 2; y += 2) {
+      ctx.fillRect(-w / 2 + 2, y, w / 2 - 4, 1);
+      ctx.fillRect(2, y, w / 2 - 4, 1);
+    }
+    ctx.fillStyle = "#b3aeb5"; ctx.fillRect(2, -h / 2 + 7, w / 2 - 4, h * 0.35);
+    // вобла
+    ctx.save(); ctx.rotate(-0.18);
+    const fl = w * 0.72, fh = fl * 0.26;
+    ctx.fillStyle = "#963c19";
+    ctx.beginPath(); ctx.moveTo(fl * 0.42, 0); ctx.lineTo(fl * 0.58, -fh * 0.55); ctx.lineTo(fl * 0.55, 0); ctx.lineTo(fl * 0.58, fh * 0.55); ctx.fill();
+    const g = ctx.createLinearGradient(0, -fh / 2, 0, fh / 2);
+    g.addColorStop(0, "#6c2a12"); g.addColorStop(0.45, "#c0501f"); g.addColorStop(1, "#e7bf8f");
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.ellipse(0, 0, fl * 0.45, fh / 2, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#963c19";
+    ctx.beginPath(); ctx.moveTo(-fl * 0.05, -fh * 0.45); ctx.lineTo(fl * 0.1, -fh * 0.85); ctx.lineTo(fl * 0.18, -fh * 0.4); ctx.fill();
+    ctx.fillStyle = "#fcd9a0";
+    for (let x = -fl * 0.3; x < fl * 0.35; x += 2.2) ctx.fillRect(x, -fh * 0.05, 1, 1);
+    ctx.fillStyle = "#2a1a14"; ctx.fillRect(-fl * 0.36, -fh * 0.15, 1, 1);
+    ctx.restore();
+  }
+
+  function drawSeeds(ctx, w, seed) {
+    const r = rng(seed);
+    for (let i = 0; i < w * 0.7; i++) {
+      const a = r() * Math.PI * 2, d = (0.25 + 0.75 * Math.sqrt(r())) * w / 2;
+      const x = Math.cos(a) * d, y = Math.sin(a) * d * 0.6;
+      ctx.save(); ctx.translate(x, y); ctx.rotate(r() * Math.PI);
+      ctx.fillStyle = "#2a1a14"; ctx.beginPath(); ctx.ellipse(0, 0, 1.8, 1, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#a8a1a3"; ctx.fillRect(-1, -0.3, 2, 0.8);
+      ctx.restore();
+    }
+  }
+
+  function drawFlipflops(ctx, w) {
+    const one = (dx, rot) => {
+      ctx.save(); ctx.translate(dx, 0); ctx.rotate(rot);
+      const L = w * 0.95, W = w * 0.36;
+      const sole = () => { ctx.beginPath(); ctx.ellipse(0, -L * 0.2, W * 0.5, L * 0.3, 0, 0, Math.PI * 2); ctx.ellipse(0, L * 0.2, W * 0.42, L * 0.28, 0, 0, Math.PI * 2); };
+      ctx.fillStyle = "#c4a577"; ctx.save(); ctx.translate(0.8, 1.2); sole(); ctx.fill(); ctx.restore();
+      ctx.fillStyle = "#1a52a6"; sole(); ctx.fill();
+      ctx.fillStyle = "#3380cb"; ctx.save(); ctx.scale(0.82, 0.9); sole(); ctx.fill(); ctx.restore();
+      ctx.strokeStyle = "#fffaf0"; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.moveTo(-W * 0.45, -L * 0.02); ctx.lineTo(0, -L * 0.36); ctx.lineTo(W * 0.45, -L * 0.02); ctx.stroke();
+      ctx.restore();
+    };
+    one(-w * 0.28, -0.12);
+    one(w * 0.28, 0.2);
+  }
+
+  function drawStrawHat(ctx, w) {
+    const R = w / 2;
+    ctx.fillStyle = "#c4a577"; ctx.beginPath(); ctx.ellipse(1, 1.5, R, R * 0.8, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#e9d29a"; ctx.beginPath(); ctx.ellipse(0, 0, R, R * 0.8, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "#c9a45e"; ctx.lineWidth = 0.9;
+    for (let k = 0.55; k < 1; k += 0.14) { ctx.beginPath(); ctx.ellipse(0, 0, R * k, R * 0.8 * k, 0, 0, Math.PI * 2); ctx.stroke(); }
+    ctx.fillStyle = "#e8473b"; ctx.beginPath(); ctx.ellipse(0, 0, R * 0.52, R * 0.42, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#fcd9a0"; ctx.beginPath(); ctx.ellipse(0, 0, R * 0.44, R * 0.35, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#fff08a"; ctx.beginPath(); ctx.ellipse(-R * 0.1, -R * 0.08, R * 0.2, R * 0.14, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#e8473b"; ctx.beginPath(); ctx.moveTo(R * 0.45, R * 0.1); ctx.lineTo(R * 0.8, R * 0.35); ctx.lineTo(R * 0.7, R * 0.45); ctx.fill();
+  }
+
+  // надписи на вещах — живой текст, напечатанный под вафлей
+  function printText(L, cx, cy, rot, html, css) {
+    const el = document.createElement("div");
+    el.className = "print-text";
+    el.innerHTML = html;
+    el.style.cssText += css;
+    cloth.appendChild(el);
+    const r = el.getBoundingClientRect();
+    el.style.left = cx * L.cell - r.width / 2 + "px";
+    el.style.top = cy * L.cell - r.height / 2 + "px";
+    el.style.transform = `rotate(${rot}rad)`;
+  }
+
+  function beachItems(L, stamp) {
+    cloth.querySelectorAll(".print-text").forEach((el) => el.remove());
+    const origin = cloth.getBoundingClientRect();
+    const rect = (sel) => {
+      const el = cloth.querySelector(sel);
+      if (!el) return null;
+      const r = el.getBoundingClientRect();
+      return { x: (r.left - origin.left) / L.cell, y: (r.top - origin.top) / L.cell, w: r.width / L.cell, h: r.height / L.cell };
+    };
+    const cols = L.cols, k = Math.min(1, cols / 150);
+    const title = rect(".cases-title"), vk = rect("#case-vk"), sber = rect("#case-sber"), arz = rect("#case-arz"),
+      np = rect("#case-np"), gpn = rect("#case-gpn"), end = rect(".sand-end"), list = rect(".case-list");
+    const twoCol = sber.x > vk.x + 10;
+    const boxes = [];
+    const place = (cx, cy, w, h, rot, draw, kind = 1) => {
+      stamp((ctx) => { ctx.translate(cx, cy); ctx.rotate(rot); draw(ctx); }, kind);
+      const e = Math.max(w, h) / 2;
+      boxes.push({ x: cx - e, y: cy - e, w: e * 2, h: e * 2 });
+    };
+    const sprite = (name) => sprites["sprites/" + name + ".png"];
+    const drawSprite = (img, w) => (ctx) => {
+      const h = w * img.height / img.width;
+      ctx.drawImage(tinted(img, "#c4a577"), -w / 2 + 1, -h / 2 + 1.5, w, h);
+      ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
+      ctx.drawImage(img, -w / 2, -h / 2, w, h);
+    };
+
+    // крокодил: от левого края «Кейсов» по диагонали к правому краю «Школы 21»
+    const croc = sprite("croc");
+    if (croc) {
+      const x0 = twoCol ? title.x + title.w * 0.2 : 4, y0 = title.y + title.h * 0.55;
+      const x1 = sber.x + sber.w, y1 = twoCol ? sber.y + sber.h * 0.3 : sber.y + sber.h * 0.5;
+      const len = Math.min(Math.hypot(x1 - x0, y1 - y0), cols * 0.95);
+      const ang = Math.atan2(y1 - y0, x1 - x0);
+      place((x0 + x1) / 2, (y0 + y1) / 2, len, len * croc.height / croc.width, ang, drawSprite(croc, len));
+    }
+    // стакан пива — ниже, слева
+    const cup = sprite("cup");
+    if (cup) {
+      const w = 20 * k;
+      const cy = twoCol ? arz.y - 16 : (sber.y + sber.h + arz.y) / 2;
+      place(twoCol ? vk.x + 12 : 10, cy, w, w * 1.5, -0.15, drawSprite(cup, w));
+    }
+    // фуражка — над «Национальными приоритетами»
+    const cap = sprite("cap");
+    if (cap) {
+      const w = 36 * k;
+      place(np.x + np.w * 0.78, np.y - 11 * k, w, w * 0.6, 0.12, drawSprite(cap, w));
+    }
+    // кукуруза — на эксплейнере
+    { const w = 44 * k; place(gpn.x + gpn.w * (twoCol ? 0.78 : 0.7), gpn.y + gpn.h * 0.62, w, w * 0.35, -0.3, (ctx) => drawCorn(ctx, w)); }
+    // футболка «Я ❤ NARRATORS»
+    {
+      const w = 46 * k, rot = 0.14;
+      const cx = twoCol ? np.x + np.w * 0.5 : cols * 0.5;
+      const cy = twoCol ? np.y + np.h + 30 : gpn.y + gpn.h + 28 * k;
+      place(cx, cy, w, w, rot, (ctx) => drawTshirt(ctx, w));
+      printText(L, cx, cy + w * 0.08, rot, 'Я <span style="color:#e8473b">❤</span><br>NARRATORS',
+        `font: 400 ${Math.round(w * L.cell * 0.13)}px/1.1 "Russo One", sans-serif; color: #1c2a5c;`);
+    }
+    // газета с воблой, семечки, вьетнамки, шляпа — у самого низа
+    // на узком экране — в два ряда
+    const kb = twoCol ? k : Math.min(1, cols / 95);
+    const row1 = twoCol ? end.y + end.h * 0.5 : end.y + end.h * 0.28, row2 = twoCol ? row1 : end.y + end.h * 0.72;
+    const X = twoCol ? [0.2, 0.42, 0.62, 0.86] : [0.3, 0.8, 0.28, 0.74];
+    { const w = 42 * kb, cx = cols * X[0], by = row1, rot = -0.12;
+      place(cx, by, w, w * 0.68, rot, (ctx) => drawNewspaper(ctx, w));
+      printText(L, cx + Math.sin(rot) * w * 0.29, by - Math.cos(rot) * w * 0.29, rot, "КУРОРТНАЯ ГАЗЕТА",
+        `font: 400 ${Math.max(7, Math.round(w * L.cell * 0.062))}px/1 "Russo One", sans-serif; color: #fffaf0; letter-spacing: .03em;`); }
+    { const w = 26 * kb; place(cols * X[1], row1 + 4 * kb, w, w * 0.6, 0, (ctx) => drawSeeds(ctx, w, 5)); }
+    { const w = 26 * kb; place(cols * X[2], row2, w, w * 1.1, 0.3, (ctx) => drawFlipflops(ctx, w)); }
+    { const w = 36 * kb; place(cols * X[3], row2 - 4 * kb, w, w * 0.8, -0.2, (ctx) => drawStrawHat(ctx, w)); }
+    return boxes;
+  }
+
   // ——— сборка ———
   function build() {
     const L = measure();
@@ -744,39 +951,7 @@
     // ракушки разбросаны по всему пляжу, в обход панелей и ярлычка
     const avoid = L.marks.filter((m) => m.kind === "panel" || m.kind === "avoid" || m.kind === "title").map((m) => m.r);
 
-    // вещи, забытые на пляже: крупные и мелкие, могут уходить за край полотенца
-    const items = [];
-    const ir = rng(31);
-    const beachTop = L.shells.y + 2;
-    for (const el of cloth.querySelectorAll("[data-beach]")) {
-      const img = sprites[el.dataset.sprite];
-      if (!img) continue;
-      const aspect = img.height / img.width;
-      for (let t = 0; t < 700; t++) {
-        const scale = Math.max(0.45, 1 - t / 500);
-        const w = Math.min(parseFloat(el.dataset.w), cols * 0.5) * scale, h = w * aspect;
-        const x = -w * 0.25 + ir() * (cols - w * 0.5), y = beachTop + ir() * (rows - 6 - beachTop - h);
-        const box = { x: x - 2, y: y - 2, w: w + 4, h: h + 4 };
-        const hit = (q) => !(box.x > q.x + q.w || box.x + box.w < q.x || box.y > q.y + q.h || box.y + box.h < q.y);
-        if (avoid.some(hit) || items.some((o) => hit(o.box))) continue;
-        items.push({ img, x, y, w, h, box, rot: (ir() - 0.5) * 0.5 });
-        break;
-      }
-    }
-    stamp((ctx) => {
-      for (const o of items) {
-        ctx.save(); ctx.translate(o.x + o.w / 2 + 1, o.y + o.h / 2 + 1.5); ctx.rotate(o.rot);
-        ctx.drawImage(tinted(o.img, "#c4a577"), -o.w / 2, -o.h / 2, o.w, o.h); ctx.restore();
-      }
-    });
-    stamp((ctx) => {
-      ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
-      for (const o of items) {
-        ctx.save(); ctx.translate(o.x + o.w / 2, o.y + o.h / 2); ctx.rotate(o.rot);
-        ctx.drawImage(o.img, -o.w / 2, -o.h / 2, o.w, o.h); ctx.restore();
-      }
-    });
-    for (const o of items) avoid.push(o.box);
+    avoid.push(...beachItems(L, stamp));
     const u = Math.min(9, Math.max(5, cols / 11));
     const sandTop = L.shells.y + 1, sandBottom = rows - 4;
     const r = rng(42), shells = [];
