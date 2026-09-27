@@ -40,7 +40,6 @@
   .magnet {
     position: absolute; z-index: 5; pointer-events: none;
     image-rendering: pixelated; image-rendering: crisp-edges;
-    filter: drop-shadow(3px 5px 0 rgba(10, 30, 70, .35));
   }
   /* мягкие складки поверх всего полотна */
   .cloth::after {
@@ -115,15 +114,10 @@
       1.5px 1.5px 0 var(--halo), -1.5px -1.5px 0 var(--halo), 1.5px -1.5px 0 var(--halo), -1.5px 1.5px 0 var(--halo);
   }
   .case a.watch { text-shadow: none; }
-  .logo {
-    flex: none; width: calc(var(--cell) * 10); height: calc(var(--cell) * 10);
-    display: grid; place-items: center;
-    font: 400 calc(var(--cell) * 3.4)/1 "Russo One", sans-serif; color: #fff; letter-spacing: -.02em;
-  }
   .case p { margin: 0; }
   .case .result { margin-top: 4px; font-weight: 700; color: var(--red); }
   .case .client { font: 400 10px/1.2 "Press Start 2P", monospace; letter-spacing: .06em; text-transform: uppercase; color: var(--red); margin: 0 0 6px; }
-  .case h3 { font-size: 21px; line-height: 1.15; font-weight: 700; margin: 0; text-wrap: balance; }
+  .case h3 { font: 400 22px/1.15 "Russo One", sans-serif; margin: 0; text-wrap: balance; }
   .case dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; }
   .case dt { font-weight: 500; color: var(--muted); }
   .case dd { margin: 0; }
@@ -151,13 +145,12 @@
 
   /* марка курорта: напечатана на песке */
   .stamp {
-    width: 220px; padding: calc(var(--cell) * 2.5) calc(var(--cell) * 2.5);
+    width: 200px; padding: calc(var(--cell) * 2.5) calc(var(--cell) * 2.5);
     text-align: center; color: var(--navy); display: flex; flex-direction: column; gap: 5px;
     font: 500 12px/1.35 "Golos Text", sans-serif;
   }
-  .stamp b { font: 400 14px/1.2 "Russo One", sans-serif; letter-spacing: .04em; color: var(--red); }
-  .stamp strong { font: 400 16px/1.1 "Russo One", sans-serif; letter-spacing: .03em; }
-  .stamp small { font-size: 11px; }
+  .stamp strong { font: 400 20px/1.1 "Russo One", sans-serif; letter-spacing: .03em; color: var(--red); }
+  .stamp small { font-size: 13px; line-height: 1.3; }
 
   @media (min-width: 880px) {
     .content { padding: 0 calc(var(--cell) * 9); }
@@ -242,48 +235,43 @@
           <h2 id="cases-h" class="px-heading" data-px="title" data-style="heading" data-text="Кейсы"><span class="sr">Кейсы</span></h2>
 
           <div class="case-list">
-            <article class="panel case" data-px="panel" data-print="object" data-sprite="sprites/croc.png" data-obj-w="1.15" data-obj-x="0.55" data-obj-y="0.55" data-obj-rot="-0.08">
+            <article class="panel case" data-px="panel" data-print="bare">
               <div class="case-head">
                 <h3>Веб-сериал для VK «Открытый код»</h3>
-                <span class="logo" data-px="logo" data-logo="vk" role="img" aria-label="VK"></span>
               </div>
               <p>Написала сценарий (24 серии по 4–6 минут)</p>
               <p class="result">≈ 450 тыс. просмотров на каждом эпизоде</p>
               <a class="watch" href="https://vk.com/video/playlist/-92204627_83" target="_blank" rel="noopener">Смотреть</a>
             </article>
 
-            <article class="panel case" data-px="panel" data-print="object" data-sprite="sprites/corn.png" data-obj-w="0.8" data-obj-x="0.62" data-obj-y="0.62" data-obj-rot="-0.32">
+            <article class="panel case" data-px="panel" data-print="bare">
               <div class="case-head">
                 <h3>Промо для Сбера «Школа 21»</h3>
-                <span class="logo" data-px="logo" data-logo="sber" role="img" aria-label="Сбер"></span>
               </div>
               <p>Придумала креативную концепцию и написала сценарий</p>
               <a class="watch" href="https://drive.google.com/file/d/1CWKqxCIYh46ycRhd-dU0OdoUuWP2zm_2/view" target="_blank" rel="noopener">Смотреть</a>
             </article>
 
-            <article class="panel case" data-px="panel" data-print="object" data-sprite="sprites/cap.png" data-obj-w="0.58" data-obj-x="0.7" data-obj-y="0.62" data-obj-rot="0.12">
+            <article class="panel case" data-px="panel" data-print="bare">
               <div class="case-head">
                 <h3>Реклама для города Арзамас</h3>
-                <span class="logo" data-px="logo" data-logo="mono" data-mono="АР" data-color="#c7302b" role="img" aria-label="Арзамас">АР</span>
               </div>
               <p>Придумала креатив для первого в истории рекламного ролика города</p>
               <p class="result">Серебро Silver Mercury в номинации «Продвижение территорий»</p>
               <a class="watch" href="https://vimeo.com/1007658703" target="_blank" rel="noopener">Смотреть</a>
             </article>
 
-            <article class="panel case" data-px="panel" data-print="object" data-sprite="sprites/churchkhela.png" data-obj-h="1.15" data-obj-x="0.8" data-obj-y="0.66" data-obj-rot="0.1">
+            <article class="panel case" data-px="panel" data-print="bare">
               <div class="case-head">
                 <h3>Промо для АНО «Национальные приоритеты» «Дропперы»</h3>
-                <span class="logo" data-px="logo" data-logo="mono" data-mono="НП" data-color="#2d3f7c" role="img" aria-label="Национальные приоритеты">НП</span>
               </div>
               <p>Написала сценарий</p>
               <a class="watch" href="https://vimeo.com/1211929643/6e88a3ade3" target="_blank" rel="noopener">Смотреть</a>
             </article>
 
-            <article class="panel case" data-px="panel" data-print="object" data-sprite="sprites/cup.png" data-obj-h="1.0" data-obj-x="0.8" data-obj-y="0.62" data-obj-rot="-0.12">
+            <article class="panel case" data-px="panel" data-print="bare">
               <div class="case-head">
                 <h3>Эксплейнер для Газпромнефти</h3>
-                <span class="logo" data-px="logo" data-logo="mono" data-mono="ГПН" data-color="#0a4da2" role="img" aria-label="Газпромнефть">ГПН</span>
               </div>
               <p>Написала сценарий</p>
               <a class="watch" href="https://vimeo.com/1222666534/a98f66e8a3" target="_blank" rel="noopener">Смотреть</a>
@@ -304,8 +292,6 @@
           </footer>
 
           <aside class="stamp" data-px="panel" data-print="stamp" aria-label="Марка">
-            <b>NARRATORS × НАСТЯ</b>
-            <span>уже работали вместе:<br>«Нефтяной профсоюз», 2024</span>
             <strong>100% доверие</strong>
             <small>произведено в Столице Закатов</small>
           </aside>

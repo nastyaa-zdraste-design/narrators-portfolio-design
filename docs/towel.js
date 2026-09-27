@@ -98,7 +98,7 @@
   magnetCanvas.className = "magnet";
   magnetCanvas.setAttribute("aria-hidden", "true");
   cloth.appendChild(magnetCanvas);
-  const MAGNET_RES = 3, MAGNET_PAD = 3;
+  const MAGNET_RES = 1.5, MAGNET_PAD = 0;
 
   function measure() {
     towel.style.width = "";
@@ -579,7 +579,6 @@
     const ctx = magnetCanvas.getContext("2d", { willReadFrequently: true });
     ctx.setTransform(k, 0, 0, k, (pad - r.x) * k, (pad - r.y) * k);
     ctx.clearRect(r.x - pad, r.y - pad, r.w + pad * 2, r.h + pad * 2);
-    magnetBody(ctx, r);
     magnetPhoto(ctx, r);
     magnetTrim(ctx, r);
     const img = ctx.getImageData(0, 0, cw, ch), d = img.data;
@@ -774,20 +773,58 @@
     });
 
     for (const m of L.marks) {
-      if (m.kind === "panel" && m.el.dataset.sprite) {
-        const o = objectPlacement(m.r, m.el);
-        if (o) {
-          stamp((ctx) => { ctx.translate(1, 1.6); drawObject(ctx, o, "#1a52a6"); });
-          stamp((ctx) => drawObject(ctx, o), 1);
-        }
-        block(m.r);
-      }
+      if (m.kind === "panel" && m.el.dataset.print === "bare") block(m.r);
       else if (m.kind === "panel") { stamp((ctx) => printPatch(ctx, m.r, m.el.dataset.print, Math.round(m.r.y * 7 + m.r.x))); block(m.r); }
       else if (m.kind === "ribbon") { stamp((ctx) => ribbon(ctx, m.r)); block(m.r); }
-      else if (m.kind === "photo") { paintMagnet(L, m.r); block(m.r); }
+      else if (m.kind === "photo") {
+        stamp((ctx) => { ctx.fillStyle = "#1b56ad"; ctx.translate(1.2, 1.8); wavyRect(ctx, m.r.x + 1.5, m.r.y + 1.5, m.r.w - 3, m.r.h - 3, 0.8); });
+        stamp((ctx) => magnetBody(ctx, m.r));
+        paintMagnet(L, m.r);
+        block(m.r);
+      }
       else if (m.kind === "title") { stamp((ctx) => script(ctx, m.r, m.el.dataset.text, m.el.dataset.style, m.el.dataset.font)); block(m.r, 0); }
-      else if (m.kind === "logo") stamp((ctx) => logo(ctx, m.r, m.el));
       else if (m.kind === "avoid") block(m.r);
+    }
+
+    // рыбки и буйки в свободной воде между кейсами — не под текстом
+    const caseRects = L.marks.filter((m) => m.kind === "panel" && m.el.dataset.print === "bare").map((m) => m.r);
+    if (caseRects.length) {
+      const top = Math.min(...caseRects.map((q) => q.y)) - 2, bottom = L.shore - 8;
+      const fr = rng(9), placed = [];
+      const clear = (x, y, rad) => x > rad + 2 && x < cols - rad - 2 &&
+        caseRects.every((q) => x < q.x - rad - 3 || x > q.x + q.w + rad + 3 || y < q.y - rad - 3 || y > q.y + q.h + rad + 3) &&
+        placed.every((o) => Math.hypot(o.x - x, o.y - y) > (o.rad + rad) * 5);
+      const want = Math.round((bottom - top) * cols / 2600);
+      for (let t = 0; t < 1500 && placed.length < want; t++) {
+        const kind = fr() < 0.8 ? "fish" : "buoy";
+        const rad = kind === "fish" ? 3 + fr() * 2 : 3.2;
+        const x = fr() * cols, y = top + fr() * (bottom - top);
+        if (clear(x, y, rad)) placed.push({ kind, x, y, rad, flip: fr() > 0.5, hue: Math.floor(fr() * 4) });
+      }
+      stamp((ctx) => {
+        const fishCols = [["#ff9a2e", "#e8473b"], ["#ffd23f", "#ff9a2e"], ["#ff9ab5", "#e8473b"], ["#fffaf0", "#ff9a2e"]];
+        for (const o of placed) {
+          ctx.save(); ctx.translate(o.x, o.y);
+          if (o.kind === "fish") {
+            if (o.flip) ctx.scale(-1, 1);
+            const [body, fin] = fishCols[o.hue], r = o.rad;
+            ctx.fillStyle = fin;
+            ctx.beginPath(); ctx.moveTo(r * 0.8, 0); ctx.lineTo(r * 1.7, -r * 0.7); ctx.lineTo(r * 1.7, r * 0.7); ctx.fill();
+            ctx.fillStyle = body;
+            ctx.beginPath(); ctx.ellipse(0, 0, r, r * 0.6, 0, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = fin; ctx.fillRect(-r * 0.1, -r * 0.6, r * 0.5, r * 1.2);
+            ctx.fillStyle = "#1c2a5c"; ctx.fillRect(-r * 0.65, -r * 0.2, 1, 1);
+          } else {
+            ctx.fillStyle = "#ffffff";
+            ctx.beginPath(); ctx.ellipse(0, 1.5, o.rad + 1.5, 1.2, 0, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = "#e8473b";
+            ctx.beginPath(); ctx.arc(0, 0, o.rad, Math.PI, 0); ctx.fill();
+            ctx.fillStyle = "#fffaf0"; ctx.fillRect(-o.rad, -1.2, o.rad * 2, 1.2);
+            ctx.fillStyle = "#5a3320"; ctx.fillRect(-0.5, -o.rad - 2.5, 1, 2.5);
+          }
+          ctx.restore();
+        }
+      });
     }
 
     // живой слой над горизонтом «Кейсов»: волны и дельфины
