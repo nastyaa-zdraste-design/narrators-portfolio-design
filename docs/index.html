@@ -37,6 +37,11 @@
   .cloth { position: relative; overflow: hidden; }
   .cloth canvas.scene { position: absolute; inset: 0; width: 100%; height: 100%; }
   .weave { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+  .magnet {
+    position: absolute; z-index: 5; pointer-events: none;
+    image-rendering: pixelated; image-rendering: crisp-edges;
+    filter: drop-shadow(3px 5px 0 rgba(10, 30, 70, .35));
+  }
   /* мягкие складки поверх всего полотна */
   .cloth::after {
     content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 4;
@@ -96,18 +101,20 @@
   .stop a:hover, .stop a:focus-visible { text-decoration-thickness: 2px; outline: none; }
   .case-list { display: flex; flex-direction: column; gap: calc(var(--cell) * 13); padding: calc(var(--cell) * 3) 0 calc(var(--cell) * 20); }
   .case { margin-bottom: 0; }
-  .case[data-print="mattress"] { padding-left: calc(var(--cell) * 8); }
-  .case[data-print="note"] { padding-top: calc(var(--cell) * 4); padding-bottom: calc(var(--cell) * 4); }
-  .case[data-print="raft"] { padding-left: calc(var(--cell) * 4); padding-right: calc(var(--cell) * 4); }
-  .case[data-print="surf"] { padding: calc(var(--cell) * 2) calc(var(--cell) * 12) calc(var(--cell) * 2) calc(var(--cell) * 6); }
-  .case[data-print="boat"] { padding: calc(var(--cell) * 2) calc(var(--cell) * 8) calc(var(--cell) * 2) calc(var(--cell) * 4); }
+  .case { padding: calc(var(--cell) * 3) calc(var(--cell) * 2); }
   .horizon { height: 0; }
   .vista { height: calc(var(--cell) * 34); }
   .px-heading { height: calc(var(--cell) * 21); margin: 0 0 calc(var(--cell) * 3); }
   .case { width: 86%; }
   .case:nth-of-type(odd) { margin-right: auto; }
   .case:nth-of-type(even) { margin-left: auto; }
-  .case-head { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+  .case-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 10px; }
+  .case {
+    --halo: var(--cream);
+    text-shadow: 0 0 1px var(--halo), 1.5px 0 0 var(--halo), -1.5px 0 0 var(--halo), 0 1.5px 0 var(--halo), 0 -1.5px 0 var(--halo),
+      1.5px 1.5px 0 var(--halo), -1.5px -1.5px 0 var(--halo), 1.5px -1.5px 0 var(--halo), -1.5px 1.5px 0 var(--halo);
+  }
+  .case a.watch { text-shadow: none; }
   .logo {
     flex: none; width: calc(var(--cell) * 10); height: calc(var(--cell) * 10);
     display: grid; place-items: center;
@@ -132,31 +139,25 @@
   .shells { height: calc(var(--cell) * 16); }
   .sand-end { height: calc(var(--cell) * 16); }
   .hero { display: flex; flex-direction: column; }
-  .beach-row { display: flex; flex-direction: column; }
+  .beach-row { display: flex; flex-direction: column; align-items: center; gap: calc(var(--cell) * 8); }
   .contacts { text-align: center; margin-bottom: calc(var(--cell) * 4); }
-  .contacts-h { height: calc(var(--cell) * 12); margin: 0 0 calc(var(--cell) * 2); }
-  .contact-list { display: grid; grid-template-columns: auto auto; justify-content: center; gap: 8px 14px; margin: 0; text-align: left; }
-  .contact-list dt { font: 400 10px/2.2 "Press Start 2P", monospace; color: var(--red); text-transform: uppercase; }
-  .contact-list dd { margin: 0; font-weight: 700; font-size: 17px; }
-  .contact-list a { color: var(--navy); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  .contact-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .contact-list a {
+    font: 400 clamp(16px, 2.6vw, 24px)/1.2 "Russo One", sans-serif; color: var(--navy);
+    text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 5px; overflow-wrap: anywhere;
+  }
+  .contact-list a:hover, .contact-list a:focus-visible { color: var(--red); outline: none; }
   .contacts p { margin: 0; }
 
-  /* пришитый ярлычок — единственная «настоящая» вещь на пиксельном полотенце */
-  .care {
-    position: relative; margin: 0 0 calc(var(--cell) * 7) auto; width: 210px;
-    background: #fbfaf6; color: #3b3b3b;
-    padding: 12px 14px 14px; text-align: center;
-    font: 500 11px/1.4 "Golos Text", sans-serif; letter-spacing: .02em;
-    transform: rotate(-3deg);
-    box-shadow: 0 2px 3px rgba(0,0,0,.35), inset 0 0 0 5px #fbfaf6, inset 0 0 0 6px #d9d4c5;
+  /* марка курорта: напечатана на песке */
+  .stamp {
+    width: 220px; padding: calc(var(--cell) * 2.5) calc(var(--cell) * 2.5);
+    text-align: center; color: var(--navy); display: flex; flex-direction: column; gap: 5px;
+    font: 500 12px/1.35 "Golos Text", sans-serif;
   }
-  .care b { display: block; font: 700 10px/1.2 "Golos Text", sans-serif; letter-spacing: .22em; margin-bottom: 6px; }
-  .care hr { border: 0; border-top: 1px dashed #bdb6a3; margin: 7px 0; }
-  .care::before, .care::after {
-    content: ""; position: absolute; top: 3px; bottom: 3px; width: 2px;
-    background: repeating-linear-gradient(180deg, #a9a291 0 3px, transparent 3px 6px);
-  }
-  .care::before { left: 2px; } .care::after { right: 2px; }
+  .stamp b { font: 400 14px/1.2 "Russo One", sans-serif; letter-spacing: .04em; color: var(--red); }
+  .stamp strong { font: 400 16px/1.1 "Russo One", sans-serif; letter-spacing: .03em; }
+  .stamp small { font-size: 11px; }
 
   @media (min-width: 880px) {
     .content { padding: 0 calc(var(--cell) * 9); }
@@ -170,24 +171,22 @@
     .role { text-align: left; }
     .hero-text .panel { margin-bottom: 0; }
     .px-photo { width: calc(var(--cell) * 56); height: calc(var(--cell) * 68); }
-    .stops { display: grid; grid-template-columns: 1fr 1fr; column-gap: calc(var(--cell) * 14); row-gap: calc(var(--cell) * 6); }
-    .stop { justify-self: center; min-width: 70%; max-width: 100%; }
-    .stop:nth-child(even) { margin-top: calc(var(--cell) * 12); }
+    .stops { display: grid; grid-template-columns: repeat(3, 1fr); column-gap: calc(var(--cell) * 10); align-items: start; }
+    .stop { width: 100%; min-width: 0; max-width: none; margin: 0; }
+    .stop:nth-child(even) { margin-left: 0; }
     .px-heading { height: calc(var(--cell) * 22); }
     .case-list { display: grid; grid-template-columns: 1fr 1fr; column-gap: calc(var(--cell) * 16); row-gap: calc(var(--cell) * 12); align-items: start; }
     .case-list .case { width: 100%; margin-left: 0; margin-right: 0; }
     .case-list .case:nth-child(even) { margin-top: calc(var(--cell) * 16); }
-    .beach-row { display: grid; grid-template-columns: 1fr 230px; gap: calc(var(--cell) * 8); align-items: center; }
-    .beach-row .care { margin: 0; }
+    .beach-row { display: grid; grid-template-columns: 1fr 240px; gap: calc(var(--cell) * 8); align-items: center; }
+    .beach-row .stamp { margin: 0; }
     .contacts { margin-bottom: 0; }
   }
   @media (max-width: 480px) {
-    .contact-list { grid-template-columns: 1fr; justify-items: center; text-align: center; gap: 2px; }
-    .contact-list dd { font-size: 15px; margin-bottom: 8px; }
     body { font-size: 14px; }
     .content { padding: 0 calc(var(--cell) * 4); }
     .case { width: 100%; }
-      .care { margin-right: auto; }
+      .stamp { margin: 0 auto calc(var(--cell) * 6); }
   }
 </style>
 </head>
@@ -243,48 +242,48 @@
           <h2 id="cases-h" class="px-heading" data-px="title" data-style="heading" data-text="Кейсы"><span class="sr">Кейсы</span></h2>
 
           <div class="case-list">
-            <article class="panel case" data-px="panel" data-print="mattress">
+            <article class="panel case" data-px="panel" data-print="object" data-sprite="sprites/croc.png" data-obj-w="1.15" data-obj-x="0.55" data-obj-y="0.55" data-obj-rot="-0.08">
               <div class="case-head">
-                <span class="logo" data-px="logo" data-logo="vk" role="img" aria-label="VK"></span>
                 <h3>Веб-сериал для VK «Открытый код»</h3>
+                <span class="logo" data-px="logo" data-logo="vk" role="img" aria-label="VK"></span>
               </div>
               <p>Написала сценарий (24 серии по 4–6 минут)</p>
               <p class="result">≈ 450 тыс. просмотров на каждом эпизоде</p>
               <a class="watch" href="https://vk.com/video/playlist/-92204627_83" target="_blank" rel="noopener">Смотреть</a>
             </article>
 
-            <article class="panel case" data-px="panel" data-print="note">
+            <article class="panel case" data-px="panel" data-print="object" data-sprite="sprites/corn.png" data-obj-w="0.8" data-obj-x="0.62" data-obj-y="0.62" data-obj-rot="-0.32">
               <div class="case-head">
-                <span class="logo" data-px="logo" data-logo="sber" role="img" aria-label="Сбер"></span>
                 <h3>Промо для Сбера «Школа 21»</h3>
+                <span class="logo" data-px="logo" data-logo="sber" role="img" aria-label="Сбер"></span>
               </div>
               <p>Придумала креативную концепцию и написала сценарий</p>
               <a class="watch" href="https://drive.google.com/file/d/1CWKqxCIYh46ycRhd-dU0OdoUuWP2zm_2/view" target="_blank" rel="noopener">Смотреть</a>
             </article>
 
-            <article class="panel case" data-px="panel" data-print="raft">
+            <article class="panel case" data-px="panel" data-print="object" data-sprite="sprites/cap.png" data-obj-w="0.58" data-obj-x="0.7" data-obj-y="0.62" data-obj-rot="0.12">
               <div class="case-head">
-                <span class="logo" data-px="logo" data-logo="mono" data-mono="АР" data-color="#c7302b" role="img" aria-label="Арзамас">АР</span>
                 <h3>Реклама для города Арзамас</h3>
+                <span class="logo" data-px="logo" data-logo="mono" data-mono="АР" data-color="#c7302b" role="img" aria-label="Арзамас">АР</span>
               </div>
               <p>Придумала креатив для первого в истории рекламного ролика города</p>
               <p class="result">Серебро Silver Mercury в номинации «Продвижение территорий»</p>
               <a class="watch" href="https://vimeo.com/1007658703" target="_blank" rel="noopener">Смотреть</a>
             </article>
 
-            <article class="panel case" data-px="panel" data-print="surf">
+            <article class="panel case" data-px="panel" data-print="object" data-sprite="sprites/churchkhela.png" data-obj-h="1.15" data-obj-x="0.8" data-obj-y="0.66" data-obj-rot="0.1">
               <div class="case-head">
-                <span class="logo" data-px="logo" data-logo="mono" data-mono="НП" data-color="#2d3f7c" role="img" aria-label="Национальные приоритеты">НП</span>
                 <h3>Промо для АНО «Национальные приоритеты» «Дропперы»</h3>
+                <span class="logo" data-px="logo" data-logo="mono" data-mono="НП" data-color="#2d3f7c" role="img" aria-label="Национальные приоритеты">НП</span>
               </div>
               <p>Написала сценарий</p>
               <a class="watch" href="https://vimeo.com/1211929643/6e88a3ade3" target="_blank" rel="noopener">Смотреть</a>
             </article>
 
-            <article class="panel case" data-px="panel" data-print="boat">
+            <article class="panel case" data-px="panel" data-print="object" data-sprite="sprites/cup.png" data-obj-h="1.0" data-obj-x="0.8" data-obj-y="0.62" data-obj-rot="-0.12">
               <div class="case-head">
-                <span class="logo" data-px="logo" data-logo="mono" data-mono="ГПН" data-color="#0a4da2" role="img" aria-label="Газпромнефть">ГПН</span>
                 <h3>Эксплейнер для Газпромнефти</h3>
+                <span class="logo" data-px="logo" data-logo="mono" data-mono="ГПН" data-color="#0a4da2" role="img" aria-label="Газпромнефть">ГПН</span>
               </div>
               <p>Написала сценарий</p>
               <a class="watch" href="https://vimeo.com/1222666534/a98f66e8a3" target="_blank" rel="noopener">Смотреть</a>
@@ -295,21 +294,20 @@
         <div class="shore" data-px="shore"></div>
         <div class="shells" data-px="shells"></div>
 
+        <h2 class="px-heading contacts-h" data-px="title" data-style="heading" data-text="Для связи"><span class="sr">Для связи</span></h2>
         <div class="beach-row">
           <footer class="panel contacts" data-px="panel" data-print="sand">
-            <h2 class="px-heading contacts-h" data-px="title" data-style="heading" data-text="Для связи"><span class="sr">Для связи</span></h2>
-            <dl class="contact-list">
-              <dt>Telegram</dt><dd><a href="https://t.me/nastyaa_zdraste" target="_blank" rel="noopener">@nastyaa_zdraste</a></dd>
-              <dt>Почта</dt><dd><a href="mailto:sidorovaa.nastyaa@gmail.com">sidorovaa.nastyaa@gmail.com</a></dd>
-            </dl>
+            <ul class="contact-list">
+              <li><a href="https://t.me/nastyaa_zdraste" target="_blank" rel="noopener" aria-label="Telegram">@nastyaa_zdraste</a></li>
+              <li><a href="mailto:sidorovaa.nastyaa@gmail.com" aria-label="Почта">sidorovaa.nastyaa@gmail.com</a></li>
+            </ul>
           </footer>
 
-          <aside class="care" data-px="avoid" aria-label="Ярлычок полотенца">
+          <aside class="stamp" data-px="panel" data-print="stamp" aria-label="Марка">
             <b>NARRATORS × НАСТЯ</b>
-            уже работали вместе:<br>«Нефтяной профсоюз», 2024
-            <hr>
-            100% доверие<br>
-            произведено в Столице Закатов
+            <span>уже работали вместе:<br>«Нефтяной профсоюз», 2024</span>
+            <strong>100% доверие</strong>
+            <small>произведено в Столице Закатов</small>
           </aside>
         </div>
         <div class="sand-end"></div>

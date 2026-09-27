@@ -79,12 +79,26 @@
   let photo = null;      // загруженное фото владелицы
   let timer = 0;
 
-  const photoEl = cloth.querySelector('[data-px="photo"]');
-  if (photoEl && photoEl.dataset.src) {
+  const loadImage = (src) => new Promise((ok) => {
     const img = new Image();
-    img.onload = () => { photo = img; build(); };
-    img.src = photoEl.dataset.src;
-  }
+    img.onload = () => ok(img);
+    img.onerror = () => ok(null);
+    img.src = src;
+  });
+  const sprites = {};
+  const photoEl = cloth.querySelector('[data-px="photo"]');
+  const assetsReady = Promise.all([
+    photoEl && photoEl.dataset.src ? loadImage(photoEl.dataset.src).then((img) => { photo = img; }) : null,
+    ...[...cloth.querySelectorAll("[data-sprite]")].map((el) =>
+      loadImage(el.dataset.sprite).then((img) => { sprites[el.dataset.sprite] = img; })),
+  ]);
+
+  // магнит — отдельный предмет поверх полотенца, с пикселем мельче, чем у ткани
+  const magnetCanvas = document.createElement("canvas");
+  magnetCanvas.className = "magnet";
+  magnetCanvas.setAttribute("aria-hidden", "true");
+  cloth.appendChild(magnetCanvas);
+  const MAGNET_RES = 3, MAGNET_PAD = 3;
 
   function measure() {
     towel.style.width = "";
@@ -414,6 +428,40 @@
     ctx.fill();
   }
 
+  const tints = new Map();
+  function tinted(img, color) {
+    const key = img.src.slice(-40) + color;
+    if (!tints.has(key)) {
+      const c = document.createElement("canvas");
+      c.width = img.width; c.height = img.height;
+      const g = c.getContext("2d");
+      g.drawImage(img, 0, 0);
+      g.globalCompositeOperation = "source-in";
+      g.fillStyle = color; g.fillRect(0, 0, c.width, c.height);
+      tints.set(key, c);
+    }
+    return tints.get(key);
+  }
+  // предмет-подложка под кейсом: размер и место задаются в разметке
+  function objectPlacement(r, el) {
+    const img = sprites[el.dataset.sprite];
+    if (!img) return null;
+    const num = (k, d) => (el.dataset[k] !== undefined ? parseFloat(el.dataset[k]) : d);
+    let w, h;
+    if (el.dataset.objH) { h = r.h * num("objH", 1); w = h * img.width / img.height; }
+    else { w = r.w * num("objW", 1); h = w * img.height / img.width; }
+    return { img, w, h, cx: r.x + r.w * num("objX", 0.5), cy: r.y + r.h * num("objY", 0.5), rot: num("objRot", 0) };
+  }
+  function drawObject(ctx, o, tint) {
+    ctx.save();
+    ctx.translate(o.cx, o.cy);
+    ctx.rotate(o.rot);
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(tint ? tinted(o.img, tint) : o.img, -o.w / 2, -o.h / 2, o.w, o.h);
+    ctx.restore();
+  }
+
   function printPatch(ctx, r, kind, seed) {
     const x = r.x, y = r.y, w = r.w, h = r.h;
     if (kind === "cloud") {
@@ -423,21 +471,6 @@
       bumps(ctx, x, y, w, h, seed, 5, 2.6, 0);
       ctx.fillStyle = "#ffffff";
       bumps(ctx, x + 1, y + 0.5, w - 2.5, h - 2, seed, 4.2, 2, 0);
-    } else if (kind === "lagoon") {
-      ctx.fillStyle = "#ffffff";
-      bumps(ctx, x, y, w, h, seed, 2.4, 2, 0.8);
-      ctx.fillStyle = "#93d0ea";
-      bumps(ctx, x + 0.8, y + 0.8, w - 1.6, h - 1.6, seed + 1, 1.6, 1.4, 0);
-      ctx.fillStyle = "#bfe6f1";
-      ctx.beginPath(); ctx.roundRect(x + 1.5, y + 1.5, w - 3, h - 3, 3); ctx.fill();
-      const rr = rng(seed + 2);
-      ctx.fillStyle = "#ffffff";
-      for (let i = 0; i < (w + h) * 0.5; i++) {
-        const side = rr(), t = rr();
-        const px = side < 0.5 ? x + t * w : (side < 0.75 ? x + 1 : x + w - 2);
-        const py = side < 0.25 ? y + 1 : side < 0.5 ? y + h - 2 : y + t * h;
-        ctx.fillRect(px, py, 1, 1);
-      }
     } else if (kind === "island") {
       const isle = (g, c) => {
         ctx.fillStyle = c;
@@ -446,106 +479,33 @@
       };
       isle(2.2, "#ffffff"); isle(1.2, "#93d0ea"); isle(0.3, "#dcc59c"); isle(-0.5, "#f6ead3");
       // пальмочка на краю острова
-      const px = x + 3.5, base = y + h * 0.5;
+      const px = x + 3.5, base = y + 3;
       ctx.fillStyle = "#35a03a";
-      ctx.beginPath(); ctx.ellipse(px, base + 1, 3.2, 1.4, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(px, base, 3, 1.3, 0, 0, Math.PI * 2); ctx.fill();
       ctx.strokeStyle = "#8a4b1f"; ctx.lineWidth = 1.3; ctx.lineCap = "round";
-      ctx.beginPath(); ctx.moveTo(px, base); ctx.quadraticCurveTo(px - 1.5, (base + y) / 2 - 2, px + 0.5, y - 3); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(px, base); ctx.quadraticCurveTo(px - 1.5, y - 1, px + 0.5, y - 5); ctx.stroke();
       ctx.lineWidth = 1.2;
       for (const [dx, dy, c] of [[-5, 2.2, "#1f8233"], [5, 2.4, "#35a03a"], [-3.8, -1.8, "#5dbb3c"], [3.8, -1.6, "#1f8233"], [0.5, -3.5, "#5dbb3c"]]) {
         ctx.strokeStyle = c;
-        ctx.beginPath(); ctx.moveTo(px + 0.5, y - 3); ctx.quadraticCurveTo(px + 0.5 + dx * 0.5, y - 3 + dy - 1.5, px + 0.5 + dx, y - 3 + dy); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(px + 0.5, y - 5); ctx.quadraticCurveTo(px + 0.5 + dx * 0.5, y - 5 + dy - 1.5, px + 0.5 + dx, y - 5 + dy); ctx.stroke();
       }
-      ctx.fillStyle = "#6b3a17"; ctx.fillRect(px, y - 2.5, 1, 1); ctx.fillRect(px + 1, y - 2, 1, 1);
-    } else if (kind === "mattress") {
-      ctx.fillStyle = "#1a52a6"; ctx.beginPath(); ctx.roundRect(x - 1, y - 0.5, w + 4, h + 4, 4); ctx.fill();
-      ctx.fillStyle = "#ffb02e"; ctx.beginPath(); ctx.roundRect(x - 2, y - 2, w + 4, h + 4, 4); ctx.fill();
-      ctx.fillStyle = "#fff08a"; ctx.beginPath(); ctx.roundRect(x - 1, y - 1, w + 2, h + 2, 3); ctx.fill();
-      ctx.fillStyle = "#efe25a";
-      for (let yy = y + 3; yy < y + h - 1; yy += 5) ctx.fillRect(x + 6, yy, w - 6, 1);
-      ctx.fillStyle = "#ffd23f"; ctx.beginPath(); ctx.roundRect(x - 1, y - 1, 6, h + 2, 3); ctx.fill();
-      ctx.fillStyle = "#ffb02e"; ctx.fillRect(x + 5, y - 1, 1, h + 2);
-      ctx.fillStyle = "#e8473b"; ctx.beginPath(); ctx.arc(x + w - 1, y + 1, 1.2, 0, Math.PI * 2); ctx.fill();
-    } else if (kind === "note") {
-      ctx.fillStyle = "#1a52a6"; ctx.fillRect(x, y - 1, w + 2, h + 4);
-      ctx.fillStyle = "#fdf8ee"; ctx.fillRect(x - 1, y - 1, w + 2, h + 2);
-      ctx.fillStyle = "#ecdcbc"; ctx.fillRect(x - 1, y - 1, 1, h + 2); ctx.fillRect(x + w, y - 1, 1, h + 2);
-      for (const ry of [y - 4, y + h]) {
-        ctx.fillStyle = "#c4a577"; ctx.beginPath(); ctx.roundRect(x - 2.5, ry, w + 5, 3.4, 1.7); ctx.fill();
-        ctx.fillStyle = "#e7bf8f"; ctx.fillRect(x - 2, ry + 0.8, w + 4, 1.2);
-        ctx.fillStyle = "#fcd9a0"; ctx.fillRect(x - 1.5, ry + 0.8, w + 3, 0.6);
-      }
-      // бутылка, из которой достали записку
-      ctx.save(); ctx.translate(x + w - 6, y - 7); ctx.rotate(-0.35);
-      ctx.fillStyle = "#16652a"; ctx.beginPath(); ctx.roundRect(-8, -2.6, 12, 5.2, 2.4); ctx.fill();
-      ctx.fillStyle = "#35a03a"; ctx.beginPath(); ctx.roundRect(-7.5, -2.2, 11, 4.4, 2); ctx.fill();
-      ctx.fillStyle = "#1f8233"; ctx.fillRect(3.5, -1.2, 4, 2.4);
-      ctx.fillStyle = "#c4a577"; ctx.fillRect(7.3, -1.2, 1.8, 2.4);
-      ctx.fillStyle = "#93d23f"; ctx.fillRect(-6, -1.6, 7, 0.8);
-      ctx.restore();
-    } else if (kind === "raft") {
-      ctx.fillStyle = "#1a52a6"; ctx.fillRect(x - 3, y - 1, w + 9, h + 5);
-      for (let yy = y - 2.5; yy < y + h + 1.5; yy += 4) {
-        ctx.fillStyle = "#dcc59c"; ctx.beginPath(); ctx.roundRect(x - 4, yy, w + 8, 3.8, 1.9); ctx.fill();
-        ctx.fillStyle = "#f6ead3"; ctx.fillRect(x - 3, yy + 0.4, w + 6, 2.8);
-        ctx.fillStyle = "#fdf8ee"; ctx.fillRect(x - 3, yy + 0.6, w + 6, 0.8);
-        for (const ex of [x - 4, x + w + 4]) {
-          ctx.fillStyle = "#e7bf8f"; ctx.beginPath(); ctx.arc(ex, yy + 1.9, 1.9, 0, Math.PI * 2); ctx.fill();
-          ctx.fillStyle = "#a4845a"; ctx.fillRect(ex - 0.4, yy + 1.5, 1, 1);
-        }
-      }
-      ctx.fillStyle = "#963c19";
-      for (const rx of [x - 1.5, x + w + 0.5]) ctx.fillRect(rx, y - 2.5, 1.2, h + 5);
-    } else if (kind === "surf") {
-      const cy = y + h / 2;
-      const board = () => {
-        ctx.beginPath();
-        ctx.moveTo(x - 7, cy);
-        ctx.bezierCurveTo(x - 7, y - 9, x + w * 0.75, y - 9, x + w + 14, cy);
-        ctx.bezierCurveTo(x + w * 0.75, y + h + 9, x - 7, y + h + 9, x - 7, cy);
-      };
-      ctx.save(); ctx.translate(1, 1.5); ctx.fillStyle = "#1a52a6"; board(); ctx.fill(); ctx.restore();
-      ctx.fillStyle = "#2567b9"; board(); ctx.fill();
-      ctx.save(); ctx.translate(0, 0); ctx.scale(1, 1);
+      ctx.fillStyle = "#6b3a17"; ctx.fillRect(px, y - 4.5, 1, 1); ctx.fillRect(px + 1, y - 4, 1, 1);
+    } else if (kind === "stamp") {
+      // почтовая марка курорта, напечатанная на песке
+      ctx.fillStyle = "#c4a577";
+      ctx.fillRect(x - 2, y - 2 + 1, w + 4, h + 4);
       ctx.fillStyle = "#fffaf0";
-      ctx.beginPath();
-      ctx.moveTo(x - 6, cy);
-      ctx.bezierCurveTo(x - 6, y - 8, x + w * 0.75, y - 8, x + w + 12, cy);
-      ctx.bezierCurveTo(x + w * 0.75, y + h + 8, x - 6, y + h + 8, x - 6, cy);
-      ctx.fill();
-      ctx.clip();
-      ctx.fillStyle = "#e8473b"; ctx.fillRect(x - 4.5, y - 5, 1.6, h + 10);
-      ctx.fillStyle = "#ffd23f"; ctx.fillRect(x - 2.4, y - 5, 1.2, h + 10);
-      ctx.fillStyle = "#e8473b"; ctx.fillRect(x + w + 4, y - 5, 1.2, h + 10);
-      ctx.fillStyle = "#e4f2fc"; ctx.fillRect(x - 6, cy - 0.3, w + 18, 0.7);
+      ctx.fillRect(x - 3, y - 3, w + 6, h + 6);
+      ctx.save();
+      ctx.globalCompositeOperation = "destination-out";
+      for (let px = x - 3; px <= x + w + 3; px += 3) { ctx.beginPath(); ctx.arc(px, y - 3, 1.1, 0, Math.PI * 2); ctx.arc(px, y + h + 3, 1.1, 0, Math.PI * 2); ctx.fill(); }
+      for (let py = y - 3; py <= y + h + 3; py += 3) { ctx.beginPath(); ctx.arc(x - 3, py, 1.1, 0, Math.PI * 2); ctx.arc(x + w + 3, py, 1.1, 0, Math.PI * 2); ctx.fill(); }
       ctx.restore();
-    } else if (kind === "boat") {
-      const hull = (g) => {
-        const cy = y + h / 2, top = y - 5 + g, bot = y + h + 5 - g;
-        ctx.beginPath();
-        ctx.moveTo(x - 7 + g, cy);
-        ctx.bezierCurveTo(x - 7 + g, top - 1, x + w * 0.2, top, x + w * 0.55, top);
-        ctx.bezierCurveTo(x + w * 0.85, top, x + w + 9 - g, cy - h * 0.2, x + w + 13 - g * 1.5, cy);
-        ctx.bezierCurveTo(x + w + 9 - g, cy + h * 0.2, x + w * 0.85, bot, x + w * 0.55, bot);
-        ctx.bezierCurveTo(x + w * 0.2, bot, x - 7 + g, bot + 1, x - 7 + g, cy);
-      };
-      // вёсла
-      ctx.strokeStyle = "#a4845a"; ctx.lineWidth = 1.2;
-      for (const s2 of [-1, 1]) {
-        const oy = s2 < 0 ? y - 4 : y + h + 4;
-        ctx.beginPath(); ctx.moveTo(x + w * 0.35, oy); ctx.lineTo(x + w * 0.2, oy + s2 * 8); ctx.stroke();
-        ctx.fillStyle = "#c4a577"; ctx.beginPath(); ctx.ellipse(x + w * 0.17, oy + s2 * 9.5, 1.4, 2.4, 0.3 * s2, 0, Math.PI * 2); ctx.fill();
-      }
-      ctx.save(); ctx.translate(1, 1.5); ctx.fillStyle = "#1a52a6"; hull(0); ctx.fill(); ctx.restore();
-      ctx.fillStyle = "#c0501f"; hull(0); ctx.fill();
-      ctx.fillStyle = "#ecdcbc"; hull(1.5); ctx.fill();
-      ctx.save(); hull(1.5); ctx.clip();
-      ctx.fillStyle = "#f6ead3";
-      for (let yy = y - 2; yy < y + h + 3; yy += 3) ctx.fillRect(x - 8, yy, w + 20, 1);
-      ctx.fillStyle = "#a4845a";
-      ctx.fillRect(x - 3, y - 6, 1.8, h + 12);
-      ctx.fillRect(x + w + 3, y - 6, 1.8, h + 12);
-      ctx.restore();
+      ctx.strokeStyle = "#e8473b"; ctx.lineWidth = 1;
+      ctx.strokeRect(x - 0.5, y - 0.5, w + 1, h + 1);
+      ctx.fillStyle = "#ffd23f";
+      ctx.fillRect(x + 0.5, y + 0.5, w - 1, 1.2);
+      ctx.fillRect(x + 0.5, y + h - 1.7, w - 1, 1.2);
     }
   }
 
@@ -608,6 +568,29 @@
     ctx.restore();
   }
 
+  function paintMagnet(L, r) {
+    const k = MAGNET_RES, pad = MAGNET_PAD;
+    const cw = Math.round((r.w + pad * 2) * k), ch = Math.round((r.h + pad * 2) * k);
+    magnetCanvas.width = cw; magnetCanvas.height = ch;
+    Object.assign(magnetCanvas.style, {
+      left: (r.x - pad) * L.cell + "px", top: (r.y - pad) * L.cell + "px",
+      width: (r.w + pad * 2) * L.cell + "px", height: (r.h + pad * 2) * L.cell + "px",
+    });
+    const ctx = magnetCanvas.getContext("2d", { willReadFrequently: true });
+    ctx.setTransform(k, 0, 0, k, (pad - r.x) * k, (pad - r.y) * k);
+    ctx.clearRect(r.x - pad, r.y - pad, r.w + pad * 2, r.h + pad * 2);
+    magnetBody(ctx, r);
+    magnetPhoto(ctx, r);
+    magnetTrim(ctx, r);
+    const img = ctx.getImageData(0, 0, cw, ch), d = img.data;
+    for (let i = 0; i < d.length; i += 4) {
+      if (d[i + 3] < 120) { d[i + 3] = 0; continue; }
+      const c = nearest(d[i], d[i + 1], d[i + 2]);
+      d[i] = c[0]; d[i + 1] = c[1]; d[i + 2] = c[2]; d[i + 3] = 255;
+    }
+    ctx.putImageData(img, 0, 0);
+  }
+
   function wavyRect(ctx, x, y, w, h, grow) {
     ctx.beginPath();
     ctx.roundRect(x - grow, y - grow, w + grow * 2, h + grow * 2, 5 + grow);
@@ -634,12 +617,10 @@
     ctx.beginPath(); ctx.arc(x, y, s, 0, Math.PI * 2); ctx.stroke();
   }
 
-  function magnetFrame(ctx, r) {
+  function magnetFrame(ctx, r) { magnetBody(ctx, r); magnetTrim(ctx, r); }
+  function magnetBody(ctx, r) {
     const { x, y, w, h } = r;
     const x0 = x + 1.5, y0 = y + 1.5, w0 = w - 3, h0 = h - 3;
-    // тень магнита на ткани
-    ctx.fillStyle = "#1b56ad";
-    ctx.save(); ctx.translate(1.2, 1.8); wavyRect(ctx, x0, y0, w0, h0, 0.8); ctx.restore();
     // литая рамка с фаской
     ctx.fillStyle = "#963c19"; wavyRect(ctx, x0, y0, w0, h0, 0.8);
     ctx.fillStyle = "#c9a45e"; ctx.save(); ctx.translate(0.6, 0.6); wavyRect(ctx, x0, y0, w0, h0, 0); ctx.restore();
@@ -658,6 +639,10 @@
     ctx.globalCompositeOperation = "destination-out";
     ctx.beginPath(); ctx.roundRect(win.x, win.y, win.w, win.h, 3); ctx.fill();
     ctx.restore();
+  }
+  function magnetTrim(ctx, r) {
+    const { x, y, w, h } = r;
+    const win = magnetWindow(r);
     ctx.fillStyle = "#6c2a12";
     ctx.beginPath(); ctx.roundRect(win.x - 1, win.y - 1, win.w + 2, win.h + 2, 4);
     ctx.roundRect(win.x, win.y, win.w, win.h, 3);
@@ -758,7 +743,7 @@
     };
 
     // ракушки разбросаны по всему пляжу, в обход панелей и ярлычка
-    const avoid = L.marks.filter((m) => m.kind === "panel" || m.kind === "avoid").map((m) => m.r);
+    const avoid = L.marks.filter((m) => m.kind === "panel" || m.kind === "avoid" || m.kind === "title").map((m) => m.r);
     const u = Math.min(9, Math.max(5, cols / 11));
     const sandTop = L.shells.y + 1, sandBottom = rows - 4;
     const r = rng(42), shells = [];
@@ -788,40 +773,21 @@
       palm(ctx, cols + 2, -6, Math.PI - 0.95, pw * 0.28, -0.8, 6);
     });
 
-    // маршрут: пунктир между островами, флажок на последнем
-    const isles = L.marks.filter((m) => m.kind === "panel" && m.el.dataset.print === "island").map((m) => m.r);
-    const mid = (q) => ({ x: q.x + q.w / 2, y: q.y + q.h / 2 });
-    const routeLine = () => stamp((ctx) => {
-      ctx.beginPath();
-      ctx.rect(0, 0, cols, rows);
-      for (const q of isles) ctx.ellipse(q.x + q.w / 2, q.y + q.h / 2, q.w / 2 + 6, q.h / 2 + 6.5, 0, 0, Math.PI * 2);
-      ctx.clip("evenodd");
-      ctx.strokeStyle = "#e8473b"; ctx.lineWidth = 1.3; ctx.setLineDash([2.5, 2]);
-      for (let i = 0; i < isles.length - 1; i++) {
-        const a = mid(isles[i]), b = mid(isles[i + 1]);
-        ctx.beginPath(); ctx.moveTo(a.x, a.y);
-        ctx.quadraticCurveTo((a.x + b.x) / 2 + (i % 2 ? -6 : 6), (a.y + b.y) / 2 + 3, b.x, b.y);
-        ctx.stroke();
-      }
-    });
-
     for (const m of L.marks) {
-      if (m.kind === "panel") { stamp((ctx) => printPatch(ctx, m.r, m.el.dataset.print, Math.round(m.r.y * 7 + m.r.x))); block(m.r); }
+      if (m.kind === "panel" && m.el.dataset.sprite) {
+        const o = objectPlacement(m.r, m.el);
+        if (o) {
+          stamp((ctx) => { ctx.translate(1, 1.6); drawObject(ctx, o, "#1a52a6"); });
+          stamp((ctx) => drawObject(ctx, o), 1);
+        }
+        block(m.r);
+      }
+      else if (m.kind === "panel") { stamp((ctx) => printPatch(ctx, m.r, m.el.dataset.print, Math.round(m.r.y * 7 + m.r.x))); block(m.r); }
       else if (m.kind === "ribbon") { stamp((ctx) => ribbon(ctx, m.r)); block(m.r); }
-      else if (m.kind === "photo") { stamp((ctx) => magnetPhoto(ctx, m.r), photo ? 1 : 2); stamp((ctx) => magnetFrame(ctx, m.r)); block(m.r); }
+      else if (m.kind === "photo") { paintMagnet(L, m.r); block(m.r); }
       else if (m.kind === "title") { stamp((ctx) => script(ctx, m.r, m.el.dataset.text, m.el.dataset.style, m.el.dataset.font)); block(m.r, 0); }
       else if (m.kind === "logo") stamp((ctx) => logo(ctx, m.r, m.el));
       else if (m.kind === "avoid") block(m.r);
-    }
-    if (isles.length > 1) routeLine();
-    if (isles.length) {
-      const last = isles[isles.length - 1];
-      stamp((ctx) => {
-        const fx = last.x + last.w - 3, fy = last.y + 1;
-        ctx.fillStyle = "#5a3320"; ctx.fillRect(fx, fy - 8, 1, 9);
-        ctx.fillStyle = "#e8473b";
-        ctx.beginPath(); ctx.moveTo(fx + 1, fy - 8); ctx.lineTo(fx + 6, fy - 6.2); ctx.lineTo(fx + 1, fy - 4.4); ctx.fill();
-      });
     }
 
     // живой слой над горизонтом «Кейсов»: волны и дельфины
@@ -1042,5 +1008,6 @@
   Promise.all([
     document.fonts.load('40px "Russo One"', "Москва Кейсы"),
     document.fonts.ready,
+    assetsReady,
   ]).then(() => { lastW = towel.parentElement.clientWidth; build(); });
 })();
