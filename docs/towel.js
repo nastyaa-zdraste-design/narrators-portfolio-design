@@ -857,27 +857,24 @@
     const flip = (cx, cy, w) => place(cx, cy, w, w * 1.1, 0.3, (ctx) => drawFlipflops(ctx, w));
     const hat = (cx, cy, w) => place(cx, cy, w, w * 0.5, -0.08, (ctx) => drawStrawHat(ctx, w));
     const mid = (q) => q.y + q.h / 2;
+    // крупный план сверху: вещи большие, часть уходит за край полотенца
+    const z = cols / 160;
     if (twoCol) {
-      // ряд 1: VK слева, крокодил тянется от «Кейсов» к «Школе 21» (ряд 2 справа)
-      // ряд 2: Сбер справа — слева кукуруза
-      put("corn", cols * 0.2, mid(sber) + 2, 36 * km, -0.3);
-      put("cup", cols * 0.4, mid(sber), 15 * km, 0.12);
-      // ряд 3: Арзамас слева — справа фуражка
-      put("cap", cols * 0.66, mid(arz), 32 * km, 0.12);
-      // ряд 4: Нацприоритеты справа — слева газета с воблой
-      put("newspaper", cols * 0.25, mid(np), 50 * km, -0.1);
-      // ряд 5: Газпромнефть слева — справа футболка, вьетнамки, шляпа
-      shirt(cols * 0.62, mid(gpn) + 2, 38 * km, 0.12);
-      flip(cols * 0.84, mid(gpn) - 4, 20 * km);
-      hat(cols * 0.84, B(gpn) + 4, 30 * km);
+      put("corn", 10 * z, mid(sber), 64 * z, -0.35);
+      put("cup", 58 * z, mid(sber) + 2, 26 * z, 0.12);
+      put("cap", cols - 16 * z, mid(arz), 54 * z, -0.2);
+      put("newspaper", 24 * z, mid(np), 84 * z, -0.12);
+      shirt(cols - 4 * z, mid(gpn) + 4 * z, 64 * z, -0.25);
+      flip(cols * 0.76, mid(gpn) + 12 * z, 36 * z);
+      hat(cols * 0.6, mid(gpn) - 2 * z, 44 * z);
     } else {
-      put("cup", cols - 10, B(vk) + 5, 14 * km, 0.15);
-      put("corn", cols * 0.5, B(sber) + 7, 34 * km, -0.2);
-      put("cap", cols * 0.72, B(arz) + 6, 28 * km, 0.12);
-      hat(cols * 0.22, B(arz) + 6, 26 * km);
-      put("newspaper", cols * 0.5, B(np) + 12, 44 * km, -0.1);
-      shirt(cols * 0.3, B(gpn) + 15, 32 * km, 0.1);
-      flip(cols * 0.74, B(gpn) + 13, 18 * km);
+      put("cup", cols - 8 * z, B(vk) + 12 * z, 30 * z, 0.15);
+      put("corn", 18 * z, B(sber) + 14 * z, 80 * z, -0.25);
+      put("cap", cols - 20 * z, B(arz) + 14 * z, 66 * z, 0.12);
+      put("newspaper", cols * 0.62, (B(np) + gpn.y) / 2, 84 * z, -0.1);
+      shirt(cols - 6 * z, B(gpn) + 26 * z, 84 * z, -0.2);
+      hat(cols * 0.36, B(gpn) + 18 * z, 60 * z);
+      flip(cols * 0.12, B(gpn) + 36 * z, 44 * z);
     }
     return boxes;
   }
@@ -911,7 +908,7 @@
     const avoid = L.marks.filter((m) => m.kind === "panel" || m.kind === "avoid" || m.kind === "title").map((m) => m.r);
 
     avoid.push(...beachItems(L, stamp));
-    const u = Math.min(5, Math.max(3.5, cols / 22));
+    const u = Math.min(9, Math.max(5, cols / 11));
     const sandTop = L.shells.y + 1, sandBottom = rows - 4;
     const r = rng(42), shells = [];
     const free = (x, y, s) =>
@@ -919,7 +916,7 @@
       avoid.every((a) => x < a.x - s || x > a.x + a.w + s || y < a.y - s || y > a.y + a.h + s) &&
       shells.every((o) => Math.hypot(o.x - x, o.y - y) > (o.s + s) * 1.9);
     const kindsOf = [conch, scallop, pebble, star, scallop, pebble, conch, pebble, star];
-    const target = Math.round(((sandBottom - sandTop) * cols) / (u * u * 30));
+    const target = Math.round(((sandBottom - sandTop) * cols) / (u * u * 8.5));
     for (let tries = 0; tries < 900 && shells.length < target; tries++) {
       const s = u * (0.45 + r() * 0.4);
       const x = r() * cols, y = sandTop + r() * (sandBottom - sandTop);
