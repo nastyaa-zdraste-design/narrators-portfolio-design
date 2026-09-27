@@ -41,6 +41,13 @@
     // принт и текст
     "#1c2a5c", "#2d3f7c", "#fffaf0", "#c7302b", "#e8473b", "#ff6a55", "#ffd23f", "#ffb02e", "#ff9ab5",
     "#f2c29b", "#d8956c", "#5a3320", "#2a1a14", "#101010", "#e9d29a", "#c9a45e",
+    // фото: кожа, волосы, серая толстовка, кепка, горы и вода
+    "#f7d9c4", "#f0c7ad", "#eab99a", "#dea585", "#d39576", "#c98b6a", "#9a6248", "#7a4a33", "#b08a6e", "#8c7a6c",
+    "#3f3a40", "#55505a", "#6f6a74", "#8d8893", "#b3aeb5", "#d6d2d6",
+    "#4f5e52", "#6c7a64", "#3e5a4a", "#7f9170", "#2f5d6e", "#3d7384", "#5a8fa0", "#86b3c0",
+    "#a8323a", "#7e2530",
+    // логотипы
+    "#0077ff", "#21a038", "#0a4da2",
   ].map(hex);
 
   // ——— шум ———
@@ -479,9 +486,9 @@
     } else if (kind === "raft") {
       ctx.fillStyle = "#1a52a6"; ctx.fillRect(x - 3, y - 1, w + 9, h + 5);
       for (let yy = y - 2.5; yy < y + h + 1.5; yy += 4) {
-        ctx.fillStyle = "#c4a577"; ctx.beginPath(); ctx.roundRect(x - 4, yy, w + 8, 3.8, 1.9); ctx.fill();
-        ctx.fillStyle = "#ecdcbc"; ctx.fillRect(x - 3, yy + 0.5, w + 6, 2.4);
-        ctx.fillStyle = "#f6ead3"; ctx.fillRect(x - 3, yy + 0.5, w + 6, 0.8);
+        ctx.fillStyle = "#dcc59c"; ctx.beginPath(); ctx.roundRect(x - 4, yy, w + 8, 3.8, 1.9); ctx.fill();
+        ctx.fillStyle = "#f6ead3"; ctx.fillRect(x - 3, yy + 0.4, w + 6, 2.8);
+        ctx.fillStyle = "#fdf8ee"; ctx.fillRect(x - 3, yy + 0.6, w + 6, 0.8);
         for (const ex of [x - 4, x + w + 4]) {
           ctx.fillStyle = "#e7bf8f"; ctx.beginPath(); ctx.arc(ex, yy + 1.9, 1.9, 0, Math.PI * 2); ctx.fill();
           ctx.fillStyle = "#a4845a"; ctx.fillRect(ex - 0.4, yy + 1.5, 1, 1);
@@ -568,6 +575,7 @@
       const s = Math.max(iw / photo.width, ih / photo.height);
       const pw = photo.width * s, ph = photo.height * s;
       ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
       ctx.drawImage(photo, cx - pw / 2, cy - ph / 2, pw, ph);
     } else {
       // заглушка: курортница в панаме и очках
@@ -662,8 +670,8 @@
     ctx.fillStyle = "#ffffff";
     for (let yy = Math.floor(win.y); yy < win.y + win.h; yy++)
       for (let xx = Math.floor(win.x); xx < win.x + win.w; xx++) {
-        const d = (xx - win.x) + (yy - win.y) * 0.8;
-        const inBand = (d > 5 && d < 9) || (d > 11 && d < 12.5);
+        const d = (xx - win.x) + (yy - win.y);
+        const inBand = (d > 2 && d < 5) || (d > 6.5 && d < 7.5);
         if (inBand && (xx + yy) % 2 === 0) ctx.fillRect(xx, yy, 1, 1);
       }
     ctx.restore();
@@ -675,13 +683,34 @@
     pebble(ctx, x + w * 0.52, y + h - 1, 2.6, 0.2);
   }
 
+  const VK_PATH = "m9.489.004.729-.003h3.564l.73.003.914.01.433.007.418.011.403.014.388.016.374.021.36.025.345.03.333.033c1.74.196 2.933.616 3.833 1.516.9.9 1.32 2.092 1.516 3.833l.034.333.029.346.025.36.02.373.025.588.012.41.013.644.009.915.004.98-.001 3.313-.003.73-.01.914-.007.433-.011.418-.014.403-.016.388-.021.374-.025.36-.03.345-.033.333c-.196 1.74-.616 2.933-1.516 3.833-.9.9-2.092 1.32-3.833 1.516l-.333.034-.346.029-.36.025-.373.02-.588.025-.41.012-.644.013-.915.009-.98.004-3.313-.001-.73-.003-.914-.01-.433-.007-.418-.011-.403-.014-.388-.016-.374-.021-.36-.025-.345-.03-.333-.033c-1.74-.196-2.933-.616-3.833-1.516-.9-.9-1.32-2.092-1.516-3.833l-.034-.333-.029-.346-.025-.36-.02-.373-.025-.588-.012-.41-.013-.644-.009-.915-.004-.98.001-3.313.003-.73.01-.914.007-.433.011-.418.014-.403.016-.388.021-.374.025-.36.03-.345.033-.333c.196-1.74.616-2.933 1.516-3.833.9-.9 2.092-1.32 3.833-1.516l.333-.034.346-.029.36-.025.373-.02.588-.025.41-.012.644-.013.915-.009ZM6.79 7.3H4.05c.13 6.24 3.25 9.99 8.72 9.99h.31v-3.57c2.01.2 3.53 1.67 4.14 3.57h2.84c-.78-2.84-2.83-4.41-4.11-5.01 1.28-.74 3.08-2.54 3.51-4.98h-2.58c-.56 1.98-2.22 3.78-3.8 3.95V7.3H10.5v6.92c-1.6-.4-3.62-2.34-3.71-6.92Z";
+  function logo(ctx, r, el) {
+    const s = Math.min(r.w, r.h), x = r.x + (r.w - s) / 2, y = r.y + (r.h - s) / 2;
+    const kind = el.dataset.logo;
+    if (kind === "vk") {
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath(); ctx.roundRect(x + 1, y + 1, s - 2, s - 2, s * 0.25); ctx.fill();
+      ctx.save(); ctx.translate(x, y); ctx.scale(s / 24, s / 24);
+      ctx.fillStyle = "#0077ff"; ctx.fill(new Path2D(VK_PATH));
+      ctx.restore();
+    } else if (kind === "sber") {
+      ctx.fillStyle = "#21a038";
+      ctx.beginPath(); ctx.arc(x + s / 2, y + s / 2, s / 2, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = "#ffffff"; ctx.lineWidth = s * 0.14; ctx.lineCap = "round"; ctx.lineJoin = "round";
+      ctx.beginPath(); ctx.moveTo(x + s * 0.27, y + s * 0.5); ctx.lineTo(x + s * 0.45, y + s * 0.68); ctx.lineTo(x + s * 0.82, y + s * 0.3); ctx.stroke();
+    } else {
+      ctx.fillStyle = el.dataset.color || "#1c2a5c";
+      ctx.beginPath(); ctx.roundRect(x, y, s, s, s * 0.22); ctx.fill();
+    }
+  }
+
   function script(ctx, r, text, style, font) {
     const styles = {
       title: { fill: "#ffd23f", stroke: "#c7302b", shadow: "#1c2a5c" },
       name: { fill: "#fffaf0", stroke: "#1c2a5c", shadow: "#1c2a5c" },
       heading: { fill: "#ffd23f", stroke: "#c7302b", shadow: "#123f8c" },
     }[style || "title"];
-    const family = font || "Lobster";
+    const family = font || (style === "name" ? "Lobster" : "Russo One");
     let size = r.h * 0.95;
     ctx.font = `${size}px "${family}"`;
     const w = ctx.measureText(text).width;
@@ -779,8 +808,9 @@
     for (const m of L.marks) {
       if (m.kind === "panel") { stamp((ctx) => printPatch(ctx, m.r, m.el.dataset.print, Math.round(m.r.y * 7 + m.r.x))); block(m.r); }
       else if (m.kind === "ribbon") { stamp((ctx) => ribbon(ctx, m.r)); block(m.r); }
-      else if (m.kind === "photo") { stamp((ctx) => magnetPhoto(ctx, m.r), 2); stamp((ctx) => magnetFrame(ctx, m.r)); block(m.r); }
+      else if (m.kind === "photo") { stamp((ctx) => magnetPhoto(ctx, m.r), photo ? 1 : 2); stamp((ctx) => magnetFrame(ctx, m.r)); block(m.r); }
       else if (m.kind === "title") { stamp((ctx) => script(ctx, m.r, m.el.dataset.text, m.el.dataset.style, m.el.dataset.font)); block(m.r, 0); }
+      else if (m.kind === "logo") stamp((ctx) => logo(ctx, m.r, m.el));
       else if (m.kind === "avoid") block(m.r);
     }
     if (isles.length > 1) routeLine();
@@ -1010,7 +1040,7 @@
   });
 
   Promise.all([
-    document.fonts.load("40px Lobster", "Москва"),
+    document.fonts.load('40px "Russo One"', "Москва Кейсы"),
     document.fonts.ready,
   ]).then(() => { lastW = towel.parentElement.clientWidth; build(); });
 })();

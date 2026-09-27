@@ -57,7 +57,7 @@
   .palm-space { height: calc(var(--cell) * 17); }
   .px-title { height: calc(var(--cell) * 17); margin: 0; }
   .souvenir { margin: calc(var(--cell) * 4) auto 0; width: calc(var(--cell) * 38); text-align: center; }
-  .px-photo { width: calc(var(--cell) * 40); height: calc(var(--cell) * 48); margin: 0 auto; }
+  .px-photo { width: calc(var(--cell) * 46); height: calc(var(--cell) * 56); margin: 0 auto; }
   .name {
     margin: calc(var(--cell) * 4) 0 calc(var(--cell) * 2); text-align: center;
     font: 400 clamp(15px, 4.6vw, 26px)/1.2 "Press Start 2P", monospace; color: var(--cream);
@@ -92,6 +92,8 @@
   .stop:nth-child(even) { margin-left: auto; }
   .stop time { font: 400 10px/1.6 "Press Start 2P", monospace; color: var(--red); }
   .stop b { font-weight: 700; }
+  .stop a { color: inherit; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  .stop a:hover, .stop a:focus-visible { text-decoration-thickness: 2px; outline: none; }
   .case-list { display: flex; flex-direction: column; gap: calc(var(--cell) * 13); padding: calc(var(--cell) * 3) 0 calc(var(--cell) * 20); }
   .case { margin-bottom: 0; }
   .case[data-print="mattress"] { padding-left: calc(var(--cell) * 8); }
@@ -105,17 +107,25 @@
   .case { width: 86%; }
   .case:nth-of-type(odd) { margin-right: auto; }
   .case:nth-of-type(even) { margin-left: auto; }
+  .case-head { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+  .logo {
+    flex: none; width: calc(var(--cell) * 10); height: calc(var(--cell) * 10);
+    display: grid; place-items: center;
+    font: 400 calc(var(--cell) * 3.4)/1 "Russo One", sans-serif; color: #fff; letter-spacing: -.02em;
+  }
+  .case p { margin: 0; }
+  .case .result { margin-top: 4px; font-weight: 700; color: var(--red); }
   .case .client { font: 400 10px/1.2 "Press Start 2P", monospace; letter-spacing: .06em; text-transform: uppercase; color: var(--red); margin: 0 0 6px; }
-  .case h3 { font-size: 20px; line-height: 1.15; font-weight: 700; margin: 0 0 10px; }
+  .case h3 { font-size: 21px; line-height: 1.15; font-weight: 700; margin: 0; text-wrap: balance; }
   .case dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; }
   .case dt { font-weight: 500; color: var(--muted); }
   .case dd { margin: 0; }
-  .case a, .contacts a {
+  .case a.watch {
     display: inline-block; margin-top: 12px;
     font: 400 11px/1 "Press Start 2P", monospace; color: var(--cream); text-decoration: none;
     background: var(--navy); padding: 10px 12px 9px; box-shadow: 3px 3px 0 var(--coral);
   }
-  .case a:hover, .contacts a:hover, .case a:focus-visible, .contacts a:focus-visible { background: var(--red); box-shadow: 3px 3px 0 var(--navy); outline: none; }
+  .case a.watch:hover, .case a.watch:focus-visible { background: var(--red); box-shadow: 3px 3px 0 var(--navy); outline: none; }
 
   /* ——— песок ——— */
   .shore { height: calc(var(--cell) * 4); }
@@ -124,9 +134,12 @@
   .hero { display: flex; flex-direction: column; }
   .beach-row { display: flex; flex-direction: column; }
   .contacts { text-align: center; margin-bottom: calc(var(--cell) * 4); }
-  .contacts h2 { font: 400 32px/1 "Lobster", cursive; color: var(--red); margin: 0 0 6px; }
+  .contacts-h { height: calc(var(--cell) * 12); margin: 0 0 calc(var(--cell) * 2); }
+  .contact-list { display: grid; grid-template-columns: auto auto; justify-content: center; gap: 8px 14px; margin: 0; text-align: left; }
+  .contact-list dt { font: 400 10px/2.2 "Press Start 2P", monospace; color: var(--red); text-transform: uppercase; }
+  .contact-list dd { margin: 0; font-weight: 700; font-size: 17px; }
+  .contact-list a { color: var(--navy); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
   .contacts p { margin: 0; }
-  .contacts .links { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
 
   /* пришитый ярлычок — единственная «настоящая» вещь на пиксельном полотенце */
   .care {
@@ -149,14 +162,14 @@
     .content { padding: 0 calc(var(--cell) * 9); }
     .px-title { height: calc(var(--cell) * 24); }
     .hero {
-      display: grid; grid-template-columns: calc(var(--cell) * 44) 1fr;
+      display: grid; grid-template-columns: calc(var(--cell) * 56) 1fr;
       gap: calc(var(--cell) * 8); align-items: center; margin-top: calc(var(--cell) * 3);
     }
     .souvenir { margin: 0; width: auto; }
     .name { text-align: left; margin-top: 0; }
     .role { text-align: left; }
     .hero-text .panel { margin-bottom: 0; }
-    .px-photo { width: calc(var(--cell) * 46); height: calc(var(--cell) * 56); }
+    .px-photo { width: calc(var(--cell) * 56); height: calc(var(--cell) * 68); }
     .stops { display: grid; grid-template-columns: 1fr 1fr; column-gap: calc(var(--cell) * 14); row-gap: calc(var(--cell) * 6); }
     .stop { justify-self: center; min-width: 70%; max-width: 100%; }
     .stop:nth-child(even) { margin-top: calc(var(--cell) * 12); }
@@ -169,6 +182,8 @@
     .contacts { margin-bottom: 0; }
   }
   @media (max-width: 480px) {
+    .contact-list { grid-template-columns: 1fr; justify-items: center; text-align: center; gap: 2px; }
+    .contact-list dd { font-size: 15px; margin-bottom: 8px; }
     body { font-size: 14px; }
     .content { padding: 0 calc(var(--cell) * 4); }
     .case { width: 100%; }
@@ -189,90 +204,91 @@
           <div class="palm-space"></div>
           <p class="px-title" data-px="title" data-text="Москва 2026"><span class="sr">Москва 2026</span></p>
           <div class="hero">
-          <figure class="souvenir">
-            <div class="px-photo" data-px="photo" data-src="" role="img" aria-label="Магнитик с портретом Насти"></div>
-          </figure>
-          <div class="hero-text">
-          <h1 class="name">Настя Сидорова</h1>
-          <p class="role">сценаристка · креатор</p>
-        <section class="panel intro" data-px="panel" data-print="cloud">
-          <p class="label">О себе</p>
-          <p>Придумываю креативные концепции и пишу сценарии для рекламы, брендового и документального видео.</p>
-          <p>Работала с VK, Сбером, Самолётом, Росатомом, ВкусВиллом. Сейчас — креатор-сценаристка в студии Story Hunters.</p>
-        </section>
-          </div>
+            <figure class="souvenir">
+              <div class="px-photo" data-px="photo" data-src="photo.jpg" role="img" aria-label="Магнитик с фотографией Насти"></div>
+            </figure>
+            <div class="hero-text">
+              <h1 class="name">Настя Сидорова</h1>
+              <p class="role">сценаристка и креатор</p>
+              <section class="panel intro" data-px="panel" data-print="cloud">
+                <p class="label">О себе</p>
+                <p>Сценаристка и креатор для рекламы, брендированного контента, докфильмов и анимации.</p>
+                <p>Работала с VK, Сбером, Самолётом, Росатомом, ВкусВиллом.</p>
+              </section>
+            </div>
           </div>
         </header>
-
 
         <div class="horizon" data-px="horizon"></div>
 
         <section class="route" aria-labelledby="route-h">
           <h2 id="route-h" class="px-heading" data-px="title" data-style="heading" data-text="Маршрут"><span class="sr">Маршрут</span></h2>
           <ol class="stops">
-            <li class="stop" data-px="panel" data-print="island"><time>2022 — 2024</time><b>Branda Films</b><span>креатор и сценаристка</span></li>
-            <li class="stop" data-px="panel" data-print="island"><time>2023 — 2025</time><b>Креативный продюсер и сценаристка</b><span>веб-сериалы для VK, док-фильм для КАМАЗа</span></li>
-            <li class="stop" data-px="panel" data-print="island"><time>2025</time><b>Московская школа кино</b><span>«Креативное продюсирование»</span></li>
-            <li class="stop" data-px="panel" data-print="island"><time>2025 — сейчас</time><b>Story Hunters</b><span>креатор-сценаристка</span></li>
+            <li class="stop" data-px="panel" data-print="island">
+              <time>2022 — 2023</time><b>Креатор</b>
+              <a href="https://brandafilms.pro/" target="_blank" rel="noopener">Branda Films production</a>
+            </li>
+            <li class="stop" data-px="panel" data-print="island">
+              <time>2023 — 2025</time><b>Сценаристка</b><span>freelance</span>
+            </li>
+            <li class="stop" data-px="panel" data-print="island">
+              <time>2025 — н. в.</time><b>Сценаристка и креатор</b>
+              <a href="#" data-todo="ссылка на сайт студии" target="_blank" rel="noopener">Hunters animation studio</a>
+            </li>
           </ol>
         </section>
-
 
         <section class="cases" aria-labelledby="cases-h">
           <div class="vista" data-px="vista"></div>
           <h2 id="cases-h" class="px-heading" data-px="title" data-style="heading" data-text="Кейсы"><span class="sr">Кейсы</span></h2>
 
           <div class="case-list">
-          <article class="panel case" data-px="panel" data-print="mattress">
-            <p class="client">VK</p>
-            <h3>«Открытый код»</h3>
-            <dl>
-              <dt>Задача</dt><dd>документальный веб-сериал</dd>
-              <dt>Сделала</dt><dd>сценарий, продюсирование пост-продакшна</dd>
-              <dt>Итог</dt><dd>≈ 450 тыс. просмотров на каждом эпизоде</dd>
-            </dl>
-            <a href="https://vk.com/video/playlist/-92204627_83" target="_blank" rel="noopener">Смотреть</a>
-          </article>
+            <article class="panel case" data-px="panel" data-print="mattress">
+              <div class="case-head">
+                <span class="logo" data-px="logo" data-logo="vk" role="img" aria-label="VK"></span>
+                <h3>Веб-сериал для VK «Открытый код»</h3>
+              </div>
+              <p>Написала сценарий (24 серии по 4–6 минут)</p>
+              <p class="result">≈ 450 тыс. просмотров на каждом эпизоде</p>
+              <a class="watch" href="https://vk.com/video/playlist/-92204627_83" target="_blank" rel="noopener">Смотреть</a>
+            </article>
 
-          <article class="panel case" data-px="panel" data-print="note">
-            <p class="client">Сбер · Школа 21</p>
-            <h3>Промо к открытию IT-школы</h3>
-            <dl>
-              <dt>Задача</dt><dd>рассказать о новой школе программистов</dd>
-              <dt>Сделала</dt><dd>концепцию и сценарий: история школы через «Легенду о Данко» Горького</dd>
-            </dl>
-            <a href="https://drive.google.com/file/d/1CWKqxCIYh46ycRhd-dU0OdoUuWP2zm_2/view" target="_blank" rel="noopener">Смотреть</a>
-          </article>
+            <article class="panel case" data-px="panel" data-print="note">
+              <div class="case-head">
+                <span class="logo" data-px="logo" data-logo="sber" role="img" aria-label="Сбер"></span>
+                <h3>Промо для Сбера «Школа 21»</h3>
+              </div>
+              <p>Придумала креативную концепцию и написала сценарий</p>
+              <a class="watch" href="https://drive.google.com/file/d/1CWKqxCIYh46ycRhd-dU0OdoUuWP2zm_2/view" target="_blank" rel="noopener">Смотреть</a>
+            </article>
 
-          <article class="panel case" data-px="panel" data-print="raft">
-            <p class="client">Город Арзамас</p>
-            <h3>Рекламный ролик города</h3>
-            <dl>
-              <dt>Сделала</dt><dd>сценарий</dd>
-              <dt>Итог</dt><dd>первый рекламный ролик в истории Арзамаса</dd>
-            </dl>
-            <a href="https://vimeo.com/1007658703" target="_blank" rel="noopener">Смотреть</a>
-          </article>
+            <article class="panel case" data-px="panel" data-print="raft">
+              <div class="case-head">
+                <span class="logo" data-px="logo" data-logo="mono" data-mono="АР" data-color="#c7302b" role="img" aria-label="Арзамас">АР</span>
+                <h3>Реклама для города Арзамас</h3>
+              </div>
+              <p>Придумала креатив для первого в истории рекламного ролика города</p>
+              <p class="result">Серебро Silver Mercury в номинации «Продвижение территорий»</p>
+              <a class="watch" href="https://vimeo.com/1007658703" target="_blank" rel="noopener">Смотреть</a>
+            </article>
 
-          <article class="panel case" data-px="panel" data-print="surf">
-            <p class="client">Spirit Fitness</p>
-            <h3>«Это в твоём духе»</h3>
-            <dl>
-              <dt>Задача</dt><dd>рекламный ролик сети фитнес-клубов</dd>
-              <dt>Сделала</dt><dd>креативную концепцию</dd>
-            </dl>
-            <a href="https://vkvideo.ru/video-146452013_456242235" target="_blank" rel="noopener">Смотреть</a>
-          </article>
+            <article class="panel case" data-px="panel" data-print="surf">
+              <div class="case-head">
+                <span class="logo" data-px="logo" data-logo="mono" data-mono="НП" data-color="#2d3f7c" role="img" aria-label="Национальные приоритеты">НП</span>
+                <h3>Промо для АНО «Национальные приоритеты» «Дропперы»</h3>
+              </div>
+              <p>Написала сценарий</p>
+              <a class="watch" href="https://vimeo.com/1211929643/6e88a3ade3" target="_blank" rel="noopener">Смотреть</a>
+            </article>
 
-          <article class="panel case" data-px="panel" data-print="boat">
-            <p class="client">Росатом</p>
-            <h3>Клип «Я студент Росатом»</h3>
-            <dl>
-              <dt>Задача</dt><dd>клип для школьников 9–11 классов: выбрать путь вместе с Росатомом</dd>
-              <dt>Сделала</dt><dd>сценарий клипа</dd>
-            </dl>
-            <a href="https://www.youtube.com/watch?v=QhkooPn76j8" target="_blank" rel="noopener">Смотреть</a>
-          </article>
+            <article class="panel case" data-px="panel" data-print="boat">
+              <div class="case-head">
+                <span class="logo" data-px="logo" data-logo="mono" data-mono="ГПН" data-color="#0a4da2" role="img" aria-label="Газпромнефть">ГПН</span>
+                <h3>Эксплейнер для Газпромнефти</h3>
+              </div>
+              <p>Написала сценарий</p>
+              <a class="watch" href="https://vimeo.com/1222666534/a98f66e8a3" target="_blank" rel="noopener">Смотреть</a>
+            </article>
           </div>
         </section>
 
@@ -280,21 +296,21 @@
         <div class="shells" data-px="shells"></div>
 
         <div class="beach-row">
-        <footer class="panel contacts" data-px="panel" data-print="sand">
-          <h2>Пишите на курорт</h2>
-          <p>Отвечаю быстро, даже с лежака.</p>
-          <div class="links">
-            <a href="https://t.me/nastyaa_zdraste" target="_blank" rel="noopener">Telegram</a>
-          </div>
-        </footer>
+          <footer class="panel contacts" data-px="panel" data-print="sand">
+            <h2 class="px-heading contacts-h" data-px="title" data-style="heading" data-text="Для связи"><span class="sr">Для связи</span></h2>
+            <dl class="contact-list">
+              <dt>Telegram</dt><dd><a href="https://t.me/nastyaa_zdraste" target="_blank" rel="noopener">@nastyaa_zdraste</a></dd>
+              <dt>Почта</dt><dd><a href="mailto:sidorovaa.nastyaa@gmail.com">sidorovaa.nastyaa@gmail.com</a></dd>
+            </dl>
+          </footer>
 
-        <aside class="care" data-px="avoid" aria-label="Ярлычок полотенца">
-          <b>NARRATORS × НАСТЯ</b>
-          уже работали вместе:<br>«Нефтяной профсоюз», 2024
-          <hr>
-          100% хлопок · 70 × 140 см<br>
-          не выцветает даже после 500 правок
-        </aside>
+          <aside class="care" data-px="avoid" aria-label="Ярлычок полотенца">
+            <b>NARRATORS × НАСТЯ</b>
+            уже работали вместе:<br>«Нефтяной профсоюз», 2024
+            <hr>
+            100% доверие<br>
+            произведено в Столице Закатов
+          </aside>
         </div>
         <div class="sand-end"></div>
 
