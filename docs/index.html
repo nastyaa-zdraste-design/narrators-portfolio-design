@@ -28,7 +28,7 @@
   }
   .beach { padding: 40px 16px 80px; display: flex; justify-content: center; }
   .towel {
-    position: relative; width: 640px; max-width: 100%;
+    position: relative; width: 960px; max-width: 100%;
     filter: drop-shadow(0 24px 30px rgba(0,0,0,.6)) drop-shadow(0 2px 3px rgba(0,0,0,.5));
   }
   canvas.scene, canvas.fringe { image-rendering: pixelated; image-rendering: crisp-edges; display: block; }
@@ -114,7 +114,10 @@
 
   /* ——— песок ——— */
   .shore { height: calc(var(--cell) * 4); }
-  .shells { height: calc(var(--cell) * 24); }
+  .shells { height: calc(var(--cell) * 16); }
+  .sand-end { height: calc(var(--cell) * 16); }
+  .hero { display: flex; flex-direction: column; }
+  .beach-row { display: flex; flex-direction: column; }
   .contacts { text-align: center; margin-bottom: calc(var(--cell) * 4); }
   .contacts h2 { font: 400 32px/1 "Lobster", cursive; color: var(--red); margin: 0 0 6px; }
   .contacts p { margin: 0; }
@@ -137,6 +140,29 @@
   }
   .care::before { left: 2px; } .care::after { right: 2px; }
 
+  @media (min-width: 880px) {
+    .content { padding: 0 calc(var(--cell) * 9); }
+    .px-title { height: calc(var(--cell) * 24); }
+    .hero {
+      display: grid; grid-template-columns: calc(var(--cell) * 44) 1fr;
+      gap: calc(var(--cell) * 8); align-items: center; margin-top: calc(var(--cell) * 3);
+    }
+    .souvenir { margin: 0; width: auto; }
+    .px-photo { width: calc(var(--cell) * 44); height: calc(var(--cell) * 54); }
+    .name { text-align: left; margin-top: 0; }
+    .role { text-align: left; }
+    .hero-text .panel { margin-bottom: 0; }
+    .track ol { display: grid; grid-template-columns: 1fr 1fr; column-gap: calc(var(--cell) * 6); }
+    .track li:nth-child(2) { border-top: 0; padding-top: 0; }
+    .track { margin-top: calc(var(--cell) * 6); }
+    .px-heading { height: calc(var(--cell) * 22); }
+    .case-list { display: grid; grid-template-columns: 1fr 1fr; column-gap: calc(var(--cell) * 6); align-items: start; }
+    .case-list .case { width: 100%; margin-left: 0; margin-right: 0; }
+    .case-list .case:nth-child(even) { margin-top: calc(var(--cell) * 12); }
+    .beach-row { display: grid; grid-template-columns: 1fr 230px; gap: calc(var(--cell) * 8); align-items: center; }
+    .beach-row .care { margin: 0; }
+    .contacts { margin-bottom: 0; }
+  }
   @media (max-width: 480px) {
     body { font-size: 14px; }
     .content { padding: 0 calc(var(--cell) * 4); }
@@ -158,19 +184,22 @@
         <header>
           <div class="palm-space"></div>
           <p class="px-title" data-px="title" data-text="Москва 2026"><span class="sr">Москва 2026</span></p>
+          <div class="hero">
           <figure class="souvenir">
             <div class="px-photo" data-px="photo" data-src="" role="img" aria-label="Портрет Насти на курорте"></div>
             <figcaption class="ribbon" data-px="ribbon">Сувенир с курорта</figcaption>
           </figure>
+          <div class="hero-text">
           <h1 class="name">Настя Сидорова</h1>
           <p class="role">сценаристка · креатор</p>
-        </header>
-
         <section class="panel intro" data-px="panel" data-tone="#e8473b">
           <p class="label">О себе</p>
           <p>Придумываю креативные концепции и пишу сценарии для рекламы, брендового и документального видео.</p>
           <p>Работала с VK, Сбером, Самолётом, Росатомом, ВкусВиллом. Сейчас — креатор-сценаристка в студии Story Hunters.</p>
         </section>
+          </div>
+          </div>
+        </header>
 
         <section class="panel track" data-px="panel" data-tone="#ffb02e">
           <p class="label">Маршрут</p>
@@ -188,6 +217,7 @@
           <div class="vista" data-px="vista"></div>
           <h2 id="cases-h" class="px-heading" data-px="title" data-style="heading" data-text="Кейсы"><span class="sr">Кейсы</span></h2>
 
+          <div class="case-list">
           <article class="panel case" data-px="panel" data-tone="#e8473b">
             <p class="client">VK</p>
             <h3>«Открытый код»</h3>
@@ -238,11 +268,13 @@
             </dl>
             <a href="https://www.youtube.com/watch?v=QhkooPn76j8" target="_blank" rel="noopener">Смотреть</a>
           </article>
+          </div>
         </section>
 
         <div class="shore" data-px="shore"></div>
         <div class="shells" data-px="shells"></div>
 
+        <div class="beach-row">
         <footer class="panel contacts" data-px="panel" data-tone="#1c2a5c">
           <h2>Пишите на курорт</h2>
           <p>Отвечаю быстро, даже с лежака.</p>
@@ -251,13 +283,15 @@
           </div>
         </footer>
 
-        <aside class="care" aria-label="Ярлычок полотенца">
+        <aside class="care" data-px="avoid" aria-label="Ярлычок полотенца">
           <b>NARRATORS × НАСТЯ</b>
           уже работали вместе:<br>«Нефтяной профсоюз», 2024
           <hr>
           100% хлопок · 70 × 140 см<br>
           не выцветает даже после 500 правок
         </aside>
+        </div>
+        <div class="sand-end"></div>
 
       </div>
     </div>

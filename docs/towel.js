@@ -81,7 +81,7 @@
 
   function measure() {
     towel.style.width = "";
-    const avail = Math.floor(Math.min(towel.getBoundingClientRect().width, 640));
+    const avail = Math.floor(Math.min(towel.getBoundingClientRect().width, 960));
     const cell = avail >= 560 ? 6 : avail >= 400 ? 5 : 4;
     const cols = Math.floor(avail / cell);
     towel.style.setProperty("--cell", cell + "px");
@@ -105,71 +105,89 @@
     };
   }
 
-  // ——— фон: небо, облака, море, песок (попиксельно) ———
-  function paintBackground(d, L) {
-    const { cols, rows, horizon, shore } = L;
-    const sky = ["#1b56ad", "#2468c2", "#3a88d6", "#6fb2e8", "#a9d6f4"].map(hex);
-    const sea = ["#123f8c", "#1a52a6", "#2567b9", "#3380cb", "#4c9ad8", "#6db6e2", "#93d0ea"].map(hex);
-    const white = hex("#ffffff"), cloudShade = hex("#8fabd0"), foam = hex("#fdf8ee");
-    const sandDry = ["#f6ead3", "#fdf8ee", "#f6ead3"].map(hex), sandWet = hex("#dcc59c");
-    for (let y = 0; y < rows; y++) {
-      for (let x = 0; x < cols; x++) {
-        let c;
-        if (y < horizon) {
-          const t = y / horizon;
-          c = ramp(sky, t);
-          // облака: вытянутые кучевые, гуще в середине неба
-          const band = Math.sin(Math.PI * Math.min(1, t * 1.15)) * 0.1;
-          const dens = fbm(x * 0.055, y * 0.12, 7, 5) + band;
-          const cl = smooth(0.54, 0.64, dens);
-          if (cl > 0) {
-            const up = fbm(x * 0.055, (y - 2) * 0.12, 7, 5) + band;
-            const shade = clamp01(0.45 + (dens - up) * 9);
-            c = mix(c, mix(white, cloudShade, shade * 0.8), cl);
-          }
-        } else if (y < shore) {
-          const t = (y - horizon) / Math.max(1, shore - horizon);
-          c = ramp(sea, Math.pow(t, 0.8));
-          const streak = fbm(x * 0.045, y * 0.55, 3, 3);
-          if (streak > 0.6) c = mix(c, hex("#93d0ea"), (streak - 0.6) * 1.8);
-          if (streak < 0.34) c = mix(c, hex("#123f8c"), (0.34 - streak) * 1.4);
-          const cap = fbm(x * 0.13, y * 0.9, 11, 2);
-          if (cap > 0.74) c = mix(c, white, Math.min(1, (cap - 0.74) * 6));
-        } else {
-          const edge = shore + Math.sin(x * 0.19) * 1.2 + fbm(x * 0.2, 0, 5, 2) * 3;
-          const t = y - edge;
-          if (t < 0) {
-            c = mix(ramp(sea, 1), foam, smooth(-5, -0.5, t));
-          } else if (t < 1.6) {
-            c = foam;
-          } else {
-            const wet = 1 - smooth(1.5, 9, t);
-            const grain = fbm(x * 0.4, y * 0.4, 21, 2);
-            c = ramp(sandDry, grain);
-            c = mix(c, sandWet, wet * 0.8);
-            if (hash(x, y, 99) > 0.994) c = hex("#dcc59c");
-          }
-        }
-        const i = (y * cols + x) * 4;
-        d[i] = c[0]; d[i + 1] = c[1]; d[i + 2] = c[2]; d[i + 3] = 255;
-      }
+  // ——— фон: небо, облака, море, прибой, песок (попиксельно) ———
+  const SKY = ["#1b56ad", "#2468c2", "#3a88d6", "#6fb2e8", "#a9d6f4"].map(hex);
+  const SEA = ["#123f8c", "#1a52a6", "#2567b9", "#3380cb", "#4c9ad8", "#6db6e2", "#93d0ea"].map(hex);
+  const WHITE = hex("#ffffff"), CLOUD_SHADE = hex("#8fabd0"), FOAM = hex("#fdf8ee");
+  const SHALLOW = hex("#93d0ea"), DEEP = hex("#123f8c");
+  const SAND = ["#f6ead3", "#fdf8ee", "#f6ead3"].map(hex), SAND_WET = hex("#dcc59c"), SAND_WET_DARK = hex("#c4a577");
+  const SURF_PERIOD = 6;
+
+  function skyColor(x, y, L) {
+    const t = y / L.horizon;
+    let c = ramp(SKY, t);
+    const band = Math.sin(Math.PI * Math.min(1, t * 1.15)) * 0.1;
+    const dens = fbm(x * 0.055, y * 0.12, 7, 5) + band;
+    const cl = smooth(0.54, 0.64, dens);
+    if (cl > 0) {
+      const up = fbm(x * 0.055, (y - 2) * 0.12, 7, 5) + band;
+      const shade = clamp01(0.45 + (dens - up) * 9);
+      c = mix(c, mix(WHITE, CLOUD_SHADE, shade * 0.8), cl);
     }
+    return c;
   }
 
-  // ——— слои, нарисованные векторно и «прибитые» к сетке без сглаживания ———
-  function stamp(L, base, flags, draw, { dither = false } = {}) {
-    const c = L.tmp, ctx = c.getContext("2d");
+  function seaColor(x, y, L, t) {
+    const k = (y - L.horizon) / Math.max(1, L.shore - L.horizon);
+    let c = ramp(SEA, Math.pow(clamp01(k), 0.8));
+    const streak = fbm(x * 0.045 - t * 0.9, y * 0.55, 3, 3);
+    if (streak > 0.6) c = mix(c, SHALLOW, (streak - 0.6) * 1.8);
+    if (streak < 0.34) c = mix(c, DEEP, (0.34 - streak) * 1.4);
+    const cap = fbm(x * 0.13 - t * 1.6, y * 0.9 + t * 0.15, 11, 2);
+    if (cap > 0.74) c = mix(c, WHITE, Math.min(1, (cap - 0.74) * 6));
+    return c;
+  }
+
+  // где в столбце x кончается вода в момент t: волна накатывает и уходит
+  const surf = (t) => 0.5 - 0.5 * Math.cos((t / SURF_PERIOD) * Math.PI * 2);
+  const edgeWobble = (x, t) => Math.sin(x * 0.16 + t * 0.5) * 1.3 + (fbm(x * 0.12, t * 0.2, 5, 2) - 0.5) * 4;
+  const waterEdge = (x, L, t) => L.shore - 4 + surf(t) * 9 + edgeWobble(x, t);
+  const maxReach = (x, L) => L.shore + 5.5 + Math.sin(x * 0.16) * 1.3 + (fbm(x * 0.12, 0, 5, 2) - 0.5) * 3;
+
+  function beachColor(x, y, L, t) {
+    const e = waterEdge(x, L, t);
+    const d = y - e;
+    if (d < 0) {
+      let c = mix(seaColor(x, y, L, t), SHALLOW, smooth(-9, 0, d));
+      const lace = fbm(x * 0.4, y * 0.7 - t * 0.6, 17, 2);
+      const foam = Math.max(smooth(-2.4, -0.3, d), lace > 0.64 && d > -7 ? 0.85 : 0);
+      return mix(c, FOAM, foam);
+    }
+    const grain = fbm(x * 0.4, y * 0.4, 21, 2);
+    let c = ramp(SAND, grain);
+    const reach = maxReach(x, L);
+    if (y < reach) {
+      // мокрый песок сохнет не сразу
+      const wet = 0.85 * (1 - smooth(reach - 3, reach, y)) * (0.55 + 0.45 * (1 - smooth(0, 4, d)));
+      c = mix(c, d < 2 ? SAND_WET_DARK : SAND_WET, wet);
+    } else if (y < reach + 1.2 && fbm(x * 0.5, 3, 9, 2) > 0.5) {
+      c = mix(c, WHITE, 0.6); // кружево от прошлой волны
+    }
+    if (hash(x, y, 99) > 0.994) c = SAND_WET;
+    return c;
+  }
+
+  function bgColor(x, y, L, t) {
+    if (y < L.horizon) return skyColor(x, y, L);
+    if (y < L.shore - 14) return seaColor(x, y, L, t);
+    return beachColor(x, y, L, t);
+  }
+
+  // ——— векторные слои, прибитые к сетке без сглаживания ———
+  function stampInto(canvas, draw, into, kinds, kind, oy = 0) {
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.clearRect(0, 0, c.width, c.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.save();
     draw(ctx);
     ctx.restore();
-    const src = ctx.getImageData(0, 0, c.width, c.height).data;
+    const src = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    const off = oy * canvas.width;
     for (let i = 0, p = 0; i < src.length; i += 4, p++) {
       if (src[i + 3] >= 120) {
-        base[i] = src[i];
-        base[i + 1] = src[i + 1]; base[i + 2] = src[i + 2]; base[i + 3] = 255;
-        flags[p] = dither ? 0 : 1;
+        const q = (p + off) * 4;
+        into[q] = src[i]; into[q + 1] = src[i + 1]; into[q + 2] = src[i + 2]; into[q + 3] = 255;
+        if (kinds) kinds[p + off] = kind;
       }
     }
   }
@@ -247,27 +265,61 @@
     ctx.restore();
   }
 
-  function wave(ctx, cx, cy, w, h, seed) {
+  function wave(ctx, cx, cy, w, h, seed, t) {
     const r = rng(seed);
-    const g = ctx.createLinearGradient(cx - w / 2, cy - h, cx + w / 2, cy + h / 2);
+    const lift = 1 + Math.sin(t * 1.4 + seed) * 0.12;
+    cx += Math.sin(t * 0.7 + seed) * 2.2;
+    const hh = h * lift;
+    const g = ctx.createLinearGradient(cx - w / 2, cy - hh, cx + w / 2, cy + hh / 2);
     g.addColorStop(0, "#fff08a"); g.addColorStop(0.3, "#c9e04a"); g.addColorStop(0.65, "#35a03a"); g.addColorStop(1, "#16652a");
     ctx.fillStyle = g;
     ctx.beginPath();
-    ctx.moveTo(cx - w / 2, cy + h * 0.35);
-    ctx.bezierCurveTo(cx - w * 0.3, cy - h * 0.9, cx + w * 0.2, cy - h * 1.05, cx + w / 2, cy - h * 0.1);
-    ctx.bezierCurveTo(cx + w * 0.3, cy + h * 0.1, cx, cy + h * 0.5, cx - w / 2, cy + h * 0.35);
+    ctx.moveTo(cx - w / 2, cy + hh * 0.35);
+    ctx.bezierCurveTo(cx - w * 0.3, cy - hh * 0.9, cx + w * 0.2, cy - hh * 1.05, cx + w / 2, cy - hh * 0.1);
+    ctx.bezierCurveTo(cx + w * 0.3, cy + hh * 0.1, cx, cy + hh * 0.5, cx - w / 2, cy + hh * 0.35);
     ctx.fill();
-    // пена по гребню
+    // пена бежит по гребню
     for (let i = 0; i < w * 1.6; i++) {
-      const t = r();
-      const px = cx - w / 2 + t * w + (r() - 0.5) * 3;
-      const crest = cy - h * (0.95 * Math.sin(Math.PI * Math.min(1, t * 1.05))) + h * 0.2;
-      const py = crest + (r() - 0.3) * h * 0.5 * (t > 0.7 ? 2 : 1);
-      ctx.fillStyle = r() > 0.25 ? "#ffffff" : "#bfe6f1";
+      const p = (r() + t * 0.06) % 1;
+      const jitter = r(), size = r(), tint = r(), spread = r();
+      const px = cx - w / 2 + p * w + (jitter - 0.5) * 3;
+      const crest = cy - hh * (0.95 * Math.sin(Math.PI * Math.min(1, p * 1.05))) + hh * 0.2;
+      const py = crest + (spread - 0.3) * hh * 0.5 * (p > 0.7 ? 2 : 1);
+      ctx.fillStyle = tint > 0.25 ? "#ffffff" : "#bfe6f1";
       ctx.beginPath();
-      ctx.arc(px, py, 0.6 + r() * 1.6, 0, Math.PI * 2);
+      ctx.arc(px, py, 0.6 + size * 1.6, 0, Math.PI * 2);
       ctx.fill();
     }
+  }
+
+  // прыжок дельфина: выныривает, летит дугой, уходит под воду с брызгами
+  function dolphinJump(ctx, j, t) {
+    const u = (((t - j.offset) % j.period) + j.period) % j.period / j.air;
+    const splash = (sx, k, seed) => {
+      if (k <= 0 || k > 1) return;
+      const r = rng(seed);
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.ellipse(sx, j.water, 2 + (1 - k) * 4, 0.9, 0, 0, Math.PI * 2); ctx.stroke();
+      for (let i = 0; i < 14; i++) {
+        const a = -Math.PI * (0.1 + r() * 0.8), sp = (1 - k) * (3 + r() * 5);
+        ctx.fillStyle = r() > 0.3 ? "#ffffff" : "#bfe6f1";
+        ctx.fillRect(sx + Math.cos(a) * sp, j.water + Math.sin(a) * sp * 1.3 + (1 - k) * (1 - k) * 4, 1, 1);
+      }
+    };
+    splash(j.x0, 1 - u / 0.3, j.seed);
+    splash(j.x0 + j.span, 1 - (u - 0.95) / 0.3, j.seed + 1);
+    if (u > 1) return;
+    const x = j.x0 + j.span * u;
+    const y = j.water - j.height * 4 * u * (1 - u);
+    const ang = Math.atan2(-j.height * 4 * (1 - 2 * u), j.span);
+    ctx.save();
+    ctx.beginPath(); ctx.rect(0, 0, 1e4, j.water + 0.4); ctx.clip();
+    ctx.translate(x, y);
+    ctx.rotate(ang);
+    ctx.scale(-1, 1);
+    dolphin(ctx, 0, 0, j.len, 0, false);
+    ctx.restore();
   }
 
   // ракушки
@@ -432,92 +484,105 @@
   }
 
   // ——— сборка статичного слоя ———
+  // ——— сборка ———
   function build() {
     const L = measure();
     const { cols, rows } = L;
     scene.width = cols; scene.height = rows;
-    L.tmp = document.createElement("canvas");
-    L.tmp.width = cols; L.tmp.height = rows;
-    const base = new Uint8ClampedArray(cols * rows * 4);
-    const flags = new Uint8Array(cols * rows);
-    const mask = new Uint8Array(cols * rows); // где не летают чайки и не бликует вода
+    const full = document.createElement("canvas");
+    full.width = cols; full.height = rows;
 
-    paintBackground(base, L);
-
-    const v = L.vista;
-    stamp(L, base, flags, (ctx) => {
-      wave(ctx, v.x + v.w * 0.2, v.y + v.h * 0.8, v.w * 0.46, v.h * 0.34, 5);
-      wave(ctx, v.x + v.w * 0.86, v.y + v.h * 0.84, v.w * 0.36, v.h * 0.26, 9);
-    });
-    stamp(L, base, flags, (ctx) => {
-      const Ld = Math.max(12, v.w * 0.2);
-      dolphin(ctx, v.x + v.w * 0.36, v.y + v.h * 0.42, Ld, -0.5, false);
-      dolphin(ctx, v.x + v.w * 0.52, v.y + v.h * 0.56, Ld * 0.85, -0.35, false);
-    });
-
-    const sh = L.shells, r = rng(42);
-    stamp(L, base, flags, (ctx) => {
-      const u = Math.max(5, cols / 11);
-      const items = [];
-      for (let x = sh.x - u * 0.2; x < sh.x + sh.w + u * 0.5; x += u * (0.75 + r() * 0.4)) items.push(x);
-      const kinds = [conch, scallop, pebble, star, pebble, conch, scallop, pebble];
-      items.forEach((x, i) => {
-        const y = sh.y + sh.h * (0.3 + r() * 0.5);
-        kinds[i % kinds.length](ctx, x, y, u * (0.55 + r() * 0.3), (r() - 0.5) * 1.2);
-      });
-      for (let i = 0; i < cols / 9; i++) {
-        pebble(ctx, r() * cols, sh.y + sh.h + r() * (rows - sh.y - sh.h), 2 + r() * 1.8, r() * 3);
+    const bg = new Uint8ClampedArray(cols * rows * 4);
+    for (let y = 0, i = 0; y < rows; y++)
+      for (let x = 0; x < cols; x++, i += 4) {
+        const c = bgColor(x, y, L, 0);
+        bg[i] = c[0]; bg[i + 1] = c[1]; bg[i + 2] = c[2]; bg[i + 3] = 255;
       }
-    });
 
-    stamp(L, base, flags, (ctx) => {
-      palm(ctx, -4, -3, 0.35, cols * 0.42, 1.1, 1);
-      palm(ctx, -2, -6, 0.9, cols * 0.3, 0.8, 2);
-      palm(ctx, cols * 0.28, -5, 0.2, cols * 0.34, 1.4, 3);
-      palm(ctx, cols * 0.62, -5, Math.PI - 0.25, cols * 0.3, -1.3, 4);
-      palm(ctx, cols + 4, -3, Math.PI - 0.4, cols * 0.4, -1.1, 5);
-      palm(ctx, cols + 2, -6, Math.PI - 0.95, cols * 0.28, -0.8, 6);
-    });
-
-    const block = (m) => {
-      const r0 = m.r;
-      for (let y = Math.max(0, Math.floor(r0.y) - 1); y < Math.min(rows, Math.ceil(r0.y + r0.h) + 2); y++)
-        for (let x = Math.max(0, Math.floor(r0.x) - 1); x < Math.min(cols, Math.ceil(r0.x + r0.w) + 2); x++)
+    const over = new Uint8ClampedArray(cols * rows * 4);
+    const kinds = new Uint8Array(cols * rows);   // 0 — фон, 1 — чёткий принт, 2 — фото с растром
+    const mask = new Uint8Array(cols * rows);    // где не летают чайки и не бликует вода
+    const stamp = (draw, kind = 1) => stampInto(full, draw, over, kinds, kind);
+    const block = (r0, pad = 1) => {
+      for (let y = Math.max(0, Math.floor(r0.y) - pad); y < Math.min(rows, Math.ceil(r0.y + r0.h) + pad + 1); y++)
+        for (let x = Math.max(0, Math.floor(r0.x) - pad); x < Math.min(cols, Math.ceil(r0.x + r0.w) + pad + 1); x++)
           mask[y * cols + x] = 1;
     };
 
-    for (const m of L.marks) {
-      if (m.kind === "panel") {
-        stamp(L, base, flags, (ctx) => panel(ctx, m.r, m.el.dataset.tone || "#e8473b"));
-        block(m);
-      } else if (m.kind === "ribbon") {
-        stamp(L, base, flags, (ctx) => ribbon(ctx, m.r));
-        block(m);
-      } else if (m.kind === "photo") {
-        stamp(L, base, flags, (ctx) => portrait(ctx, m.r), { dither: true });
-        block(m);
-      } else if (m.kind === "title") {
-        stamp(L, base, flags, (ctx) => script(ctx, m.r, m.el.dataset.text, m.el.dataset.style));
-        block(m);
-      }
+    // ракушки разбросаны по всему пляжу, в обход панелей и ярлычка
+    const avoid = L.marks.filter((m) => m.kind === "panel" || m.kind === "avoid").map((m) => m.r);
+    const u = Math.min(9, Math.max(5, cols / 11));
+    const sandTop = L.shells.y + 1, sandBottom = rows - 4;
+    const r = rng(42), shells = [];
+    const free = (x, y, s) =>
+      x > 2 && x < cols - 3 && y > sandTop && y < sandBottom &&
+      avoid.every((a) => x < a.x - s || x > a.x + a.w + s || y < a.y - s || y > a.y + a.h + s) &&
+      shells.every((o) => Math.hypot(o.x - x, o.y - y) > (o.s + s) * 1.9);
+    const kindsOf = [conch, scallop, pebble, star, scallop, pebble, conch, pebble, star];
+    const target = Math.round(((sandBottom - sandTop) * cols) / (u * u * 5.5));
+    for (let tries = 0; tries < 900 && shells.length < target; tries++) {
+      const s = u * (0.45 + r() * 0.4);
+      const x = r() * cols, y = sandTop + r() * (sandBottom - sandTop);
+      if (free(x, y, s)) shells.push({ x, y, s, rot: (r() - 0.5) * 2, draw: kindsOf[shells.length % kindsOf.length] });
     }
+    stamp((ctx) => {
+      for (const sh of shells) sh.draw(ctx, sh.x, sh.y, sh.s, sh.rot);
+    });
+
+    const pw = Math.min(cols, 120);
+    stamp((ctx) => {
+      palm(ctx, -4, -3, 0.35, pw * 0.42, 1.1, 1);
+      palm(ctx, -2, -6, 0.9, pw * 0.3, 0.8, 2);
+      palm(ctx, cols * 0.28, -5, 0.2, pw * 0.34, 1.4, 3);
+      palm(ctx, cols * 0.62, -5, Math.PI - 0.25, pw * 0.3, -1.3, 4);
+      if (cols > 130) palm(ctx, cols * 0.45, -6, 0.5, pw * 0.26, 1.2, 7);
+      palm(ctx, cols + 4, -3, Math.PI - 0.4, pw * 0.4, -1.1, 5);
+      palm(ctx, cols + 2, -6, Math.PI - 0.95, pw * 0.28, -0.8, 6);
+    });
+
+    for (const m of L.marks) {
+      if (m.kind === "panel") { stamp((ctx) => panel(ctx, m.r, m.el.dataset.tone || "#e8473b")); block(m.r); }
+      else if (m.kind === "ribbon") { stamp((ctx) => ribbon(ctx, m.r)); block(m.r); }
+      else if (m.kind === "photo") { stamp((ctx) => portrait(ctx, m.r), 2); block(m.r); }
+      else if (m.kind === "title") { stamp((ctx) => script(ctx, m.r, m.el.dataset.text, m.el.dataset.style)); block(m.r, 0); }
+      else if (m.kind === "avoid") block(m.r);
+    }
+
+    // живой слой над горизонтом «Кейсов»: волны и дельфины
+    const v = L.vista;
+    const dynTop = Math.max(0, Math.floor(v.y - v.h * 0.2)), dynBottom = Math.min(rows, Math.ceil(v.y + v.h));
+    const dyn = document.createElement("canvas");
+    dyn.width = cols; dyn.height = dynBottom - dynTop;
+    const water = v.h * 0.66;
+    const len = Math.min(20, Math.max(11, v.w * 0.16));
+    const jumps = [0, 1].map((i) => ({
+      x0: v.x + v.w * (0.14 + i * 0.3), span: v.w * 0.3, water: v.y - dynTop + water,
+      height: v.h * 0.36, len: len * (1 - i * 0.12), period: 5.2, air: 1.9, offset: i * 2.4, seed: 30 + i * 7,
+    }));
+    const drawLive = (ctx, t) => {
+      ctx.translate(0, -dynTop);
+      wave(ctx, v.x + v.w * 0.18, v.y + v.h * 0.84, v.w * 0.4, v.h * 0.3, 5, t);
+      wave(ctx, v.x + v.w * 0.86, v.y + v.h * 0.86, v.w * 0.32, v.h * 0.24, 9, t);
+      ctx.translate(0, dynTop);
+      for (const j of jumps) dolphinJump(ctx, j, t);
+    };
 
     // чайки
     const gr = rng(7), gulls = [];
     for (let i = 0; i < Math.round(cols / 14); i++) {
       gulls.push({ x: gr() * cols, y: 14 + gr() * (L.horizon - 20), sp: 0.08 + gr() * 0.1, ph: Math.floor(gr() * 6), dir: gr() > 0.3 ? 1 : -1 });
     }
-    // блики на воде
-    const glints = [];
-    for (let y = L.horizon; y < L.shore; y++)
-      for (let x = 0; x < cols; x++)
-        if (!mask[y * cols + x] && hash(x, y, 5) > 0.93) glints.push(y * cols + x);
 
-    S = { ...L, base, flags, mask, gulls, glints, frame: 0, out: new ImageData(cols, rows) };
+    S = {
+      ...L, bg, over, kinds, mask, gulls, frame: 0,
+      dyn, dynTop, dynBottom, drawLive,
+      buf: new Uint8ClampedArray(bg), liveKinds: new Uint8Array(cols * rows),
+      out: new ImageData(cols, rows),
+    };
     paintWeave();
-    paintFringe(fringeTop, true);
-    paintFringe(fringeBottom, false);
-    render();
+    setupFringe(fringeTop, true);
+    setupFringe(fringeBottom, false);
+    render(0, rows);
     schedule();
   }
 
@@ -548,44 +613,62 @@
     return PALETTE[k];
   };
 
-  function render() {
-    const { cols, rows, base, flags, mask, gulls, glints, out } = S;
-    const buf = new Uint8ClampedArray(base);
-    const f = S.frame;
-    if (!reduceMotion) {
-      for (let n = 0; n < glints.length; n++) {
-        if (hash(glints[n], f >> 1, 3) > 0.9) {
-          const i = glints[n] * 4;
-          buf[i] = buf[i + 1] = buf[i + 2] = 255;
+  const FRAME = 90;
+
+  function render(r0, r1) {
+    const { cols, bg, over, kinds, mask, gulls, buf, out, liveKinds } = S;
+    const f = S.frame, t = reduceMotion ? 0 : (f * FRAME) / 1000;
+    for (let y = r0; y < r1; y++) {
+      const live = !reduceMotion && y >= S.horizon;
+      for (let x = 0; x < cols; x++) {
+        const p = y * cols + x, i = p * 4;
+        liveKinds[p] = 0;
+        if (live && !kinds[p]) {
+          const c = bgColor(x, y, S, t);
+          buf[i] = c[0]; buf[i + 1] = c[1]; buf[i + 2] = c[2];
+          if (y < S.shore - 14 && !mask[p] && hash(x, y, 5) > 0.93 && hash(p, f >> 1, 3) > 0.9) buf[i] = buf[i + 1] = buf[i + 2] = 255;
+        } else {
+          buf[i] = bg[i]; buf[i + 1] = bg[i + 1]; buf[i + 2] = bg[i + 2];
         }
       }
     }
+    if (S.dynBottom > r0 && S.dynTop < r1) stampInto(S.dyn, (ctx) => S.drawLive(ctx, t), buf, liveKinds, 1, S.dynTop);
+
     for (const g of gulls) {
       const spr = GULL[Math.floor((f + g.ph) / 3) % 2];
       const gx = Math.round(g.x), gy = Math.round(g.y + Math.sin((f + g.ph * 7) * 0.08) * 1.5);
+      if (gy + spr.length < r0 || gy > r1) continue;
       for (let y = 0; y < spr.length; y++)
         for (let x = 0; x < spr[y].length; x++) {
           const ch = spr[y][x];
           if (ch === ".") continue;
           const px = gx + (g.dir > 0 ? x : spr[y].length - 1 - x), py = gy + y;
-          if (px < 0 || py < 0 || px >= cols || py >= rows || mask[py * cols + px]) continue;
+          if (px < 0 || py < r0 || px >= cols || py >= r1 || mask[py * cols + px]) continue;
           const c = GULL_COL[ch], i = (py * cols + px) * 4;
           buf[i] = c[0]; buf[i + 1] = c[1]; buf[i + 2] = c[2];
         }
     }
-    const d = out.data;
-    for (let y = 0, p = 0; y < rows; y++) {
-      for (let x = 0; x < cols; x++, p++) {
-        const i = p * 4;
-        const o = flags[p] ? 0 : BAYER[(y & 3) * 4 + (x & 3)] * 34;
-        let c = nearest(buf[i] + o, buf[i + 1] + o, buf[i + 2] + o);
-        // подрубленный край полотенца
+
+    const d = out.data, rows = S.rows;
+    for (let y = r0; y < r1; y++) {
+      for (let x = 0; x < cols; x++) {
+        const p = y * cols + x, i = p * 4;
+        let r = buf[i], g = buf[i + 1], b = buf[i + 2], kind = liveKinds[p] ? 1 : 0;
+        if (kinds[p]) { r = over[i]; g = over[i + 1]; b = over[i + 2]; kind = kinds[p]; }
+        const o = kind === 1 ? 0 : BAYER[(y & 3) * 4 + (x & 3)] * 34;
+        const c = nearest(r + o, g + o, b + o);
         const e = Math.min(x, y, cols - 1 - x, rows - 1 - y);
         const k = e < 2 ? 0.86 : e === 2 ? 1.07 : 1;
         d[i] = c[0] * k; d[i + 1] = c[1] * k; d[i + 2] = c[2] * k; d[i + 3] = 255;
       }
     }
-    scene.getContext("2d").putImageData(out, 0, 0);
+    scene.getContext("2d").putImageData(out, 0, 0, 0, r0, cols, r1 - r0);
+  }
+
+  function visibleRows() {
+    const rc = cloth.getBoundingClientRect();
+    const a = Math.floor(-rc.top / S.cell) - 2, b = Math.ceil((innerHeight - rc.top) / S.cell) + 2;
+    return [Math.max(0, Math.min(S.rows, a)), Math.max(0, Math.min(S.rows, b))];
   }
 
   function schedule() {
@@ -599,8 +682,14 @@
         if (g.x > S.cols + 10) g.x = -10;
         if (g.x < -10) g.x = S.cols + 10;
       }
-      render();
-    }, 110);
+      const [r0, r1] = visibleRows();
+      if (r1 > r0) render(r0, r1);
+      const t = (S.frame * FRAME) / 1000;
+      for (const [cv, top] of [[fringeTop, true], [fringeBottom, false]]) {
+        const rc = cv.getBoundingClientRect();
+        if (rc.bottom > 0 && rc.top < innerHeight) paintFringe(cv, top, t);
+      }
+    }, FRAME);
   }
 
   // ——— вафля ———
@@ -628,23 +717,53 @@
   }
 
   // ——— бахрома ———
-  function paintFringe(cv, top) {
-    const h = 9, cols = S.cols;
-    cv.width = cols; cv.height = h;
-    cv.style.width = cols * S.cell + "px";
-    cv.style.height = h * S.cell + "px";
-    const c = cv.getContext("2d");
-    c.clearRect(0, 0, cols, h);
-    const r = rng(top ? 11 : 12);
-    const thread = ["#f4efe6", "#e4dccd", "#fffaf0"];
-    for (let x = 1; x < cols - 1; x++) {
-      const len = 5 + Math.floor(r() * 4);
-      c.fillStyle = thread[Math.floor(r() * 3)];
-      if (x % 2 === 0) c.fillRect(x, 0, 1, len);
-      if (x % 4 === 1) { c.fillStyle = "#d6cbb8"; c.fillRect(x, 1, 3, 1); }
-    }
+  // ——— бахрома: скрученные кисточки с узелками и растрёпанными кончиками ———
+  const FRINGE_ROWS = 16;
+  function setupFringe(cv, top) {
+    cv.width = S.cols; cv.height = FRINGE_ROWS;
+    cv.style.width = S.cols * S.cell + "px";
+    cv.style.height = FRINGE_ROWS * S.cell + "px";
     cv.style.transform = top ? "scaleY(-1)" : "";
+    paintFringe(cv, top, 0);
   }
+  function paintFringe(cv, top, t) {
+    const cols = S.cols, h = FRINGE_ROWS;
+    const img = new ImageData(cols, h), d = img.data;
+    const put = (x, y, c) => {
+      x = Math.round(x);
+      if (x < 0 || x >= cols || y < 0 || y >= h) return;
+      const i = (y * cols + x) * 4;
+      d[i] = c[0]; d[i + 1] = c[1]; d[i + 2] = c[2]; d[i + 3] = 255;
+    };
+    const HEM = hex("#cabea7"), KNOT = hex("#d6c9b1"), LIGHT = hex("#fbf7ef"), MID = hex("#e6dccb"), TWIST = hex("#c4b69d");
+    for (let x = 0; x < cols; x++) put(x, 0, HEM);
+    const r = rng(top ? 11 : 12);
+    for (let x = 3; x < cols - 3; x += 5) {
+      const len = 9 + Math.floor(r() * 4), bend = (r() - 0.5) * 2.2, ph = r() * 6;
+      const sway = reduceMotion ? 0 : Math.sin(t * 1.1 + ph + x * 0.1) * 0.9;
+      const at = (y) => x + bend * (y / len) * (y / len) + sway * (y / len);
+      // узелок
+      for (let k = -2; k <= 1; k++) { put(x + k, 1, KNOT); put(x + k, 2, KNOT); }
+      put(x - 2, 2, TWIST); put(x + 1, 2, TWIST);
+      // скрученный шнурок
+      for (let y = 3; y < len; y++) {
+        const c = at(y);
+        put(c - 1, y, LIGHT);
+        put(c, y, MID);
+        if ((y + x) % 3 === 0) put(c - 1, y, TWIST);
+        if ((y + x) % 3 === 1) put(c, y, TWIST);
+      }
+      // растрёпанный кончик
+      const c = at(len);
+      put(c - 2, len, MID); put(c - 0.5, len, LIGHT); put(c + 1, len, MID);
+      put(c - 3, len + 1, LIGHT); put(c + 1.5, len + 1, LIGHT);
+      if (r() > 0.4) put(c - 0.5, len + 1, MID);
+      if (r() > 0.5) put(c - 3.5, len + 2, MID);
+    }
+    cv.getContext("2d").putImageData(img, 0, 0);
+  }
+
+
 
   let rt = 0, lastW = 0;
   addEventListener("resize", () => {
