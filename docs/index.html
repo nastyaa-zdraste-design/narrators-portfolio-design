@@ -98,7 +98,7 @@
   .stop b { font-weight: 700; }
   .stop a { color: inherit; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
   .stop a:hover, .stop a:focus-visible { text-decoration-thickness: 2px; outline: none; }
-  .case-list { display: flex; flex-direction: column; gap: calc(var(--cell) * 26); padding: calc(var(--cell) * 3) 0 calc(var(--cell) * 44); }
+  .case-list { display: flex; flex-direction: column; gap: calc(var(--cell) * 16); padding: calc(var(--cell) * 3) 0 calc(var(--cell) * 40); }
   .case { margin-bottom: 0; }
   .case { padding: calc(var(--cell) * 3) calc(var(--cell) * 2); }
   .horizon { height: 0; }
@@ -131,7 +131,7 @@
   /* ——— песок ——— */
   .shore { height: calc(var(--cell) * 4); }
   .shells { height: calc(var(--cell) * 10); }
-  .sand-end { height: calc(var(--cell) * 40); }
+  .sand-end { height: calc(var(--cell) * 12); }
   .print-text {
     position: absolute; z-index: 2; pointer-events: none; white-space: nowrap;
     transform-origin: 50% 50%; text-align: center; line-height: 1;
@@ -172,7 +172,7 @@
     .stop { width: 100%; min-width: 0; max-width: none; margin: 0; }
     .stop:nth-child(even) { margin-left: 0; }
     .px-heading { height: calc(var(--cell) * 22); }
-    .case-list { display: grid; grid-template-columns: 1fr 1fr; column-gap: calc(var(--cell) * 16); row-gap: calc(var(--cell) * 12); align-items: start; }
+    .case-list { display: grid; grid-template-columns: 1fr 1fr; column-gap: calc(var(--cell) * 16); row-gap: calc(var(--cell) * 10); align-items: start; padding-bottom: calc(var(--cell) * 30); }
     .case-list .case { width: 100%; margin-left: 0; margin-right: 0; }
     .case-list .case:nth-child(even) { margin-top: calc(var(--cell) * 16); }
     .beach-row { display: grid; grid-template-columns: 1fr 240px; gap: calc(var(--cell) * 8); align-items: center; }
@@ -180,7 +180,6 @@
     .contacts { margin-bottom: 0; }
   }
   @media (max-width: 480px) {
-    .sand-end { height: calc(var(--cell) * 72); }
     body { font-size: 14px; }
     .content { padding: 0 calc(var(--cell) * 4); }
     .case { width: 100%; }
@@ -239,9 +238,17 @@
         <div class="shore" data-px="shore"></div>
         <div class="shells" data-px="shells"></div>
         <section class="cases" aria-labelledby="cases-h">
-          <span hidden data-sprite="sprites/croc.png"></span>
-          <span hidden data-sprite="sprites/cap.png"></span>
-          <span hidden data-sprite="sprites/cup.png"></span>
+          <span hidden data-name="croc" data-sprite="sprites/croc.png"></span>
+          <span hidden data-name="cap" data-sprite="sprites/cap.png"></span>
+          <span hidden data-name="cup" data-sprite="sprites/cup.png"></span>
+          <span hidden data-name="corn" data-sprite="sprites/corn.png"></span>
+          <span hidden data-name="newspaper" data-sprite="sprites/newspaper.png"></span>
+          <span hidden data-name="seeds" data-sprite="sprites/seeds.png"></span>
+          <span hidden data-name="shell0" data-sprite="sprites/shell0.png"></span>
+          <span hidden data-name="shell1" data-sprite="sprites/shell1.png"></span>
+          <span hidden data-name="shell2" data-sprite="sprites/shell2.png"></span>
+          <span hidden data-name="shell3" data-sprite="sprites/shell3.png"></span>
+          <span hidden data-name="shell4" data-sprite="sprites/shell4.png"></span>
           <h2 id="cases-h" class="px-heading cases-title" data-px="title" data-style="heading" data-text="Кейсы"><span class="sr">Кейсы</span></h2>
 
           <div class="case-list">
