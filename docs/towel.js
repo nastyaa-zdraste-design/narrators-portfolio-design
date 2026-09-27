@@ -386,14 +386,52 @@
     ctx.restore();
   }
 
-  function panel(ctx, r, tone) {
-    const x = Math.round(r.x), y = Math.round(r.y), w = Math.round(r.w), h = Math.round(r.h);
-    ctx.fillStyle = "rgba(20,30,70,.9)";
-    ctx.beginPath(); ctx.roundRect(x + 1, y + 1, w, h, 3); ctx.fill();
-    ctx.fillStyle = tone;
-    ctx.beginPath(); ctx.roundRect(x, y, w, h, 3); ctx.fill();
-    ctx.fillStyle = "#fffaf0";
-    ctx.beginPath(); ctx.roundRect(x + 1, y + 1, w - 2, h - 2, 2); ctx.fill();
+  // Подложки под текст — часть рисунка: облако в небе, отмель в море, голый песок на пляже
+  function bumps(ctx, x, y, w, h, seed, big, small, grow) {
+    const r = rng(seed);
+    ctx.beginPath();
+    ctx.roundRect(x - grow, y - grow, w + grow * 2, h + grow * 2, 3);
+    for (let px = x + 1; px < x + w; px += big * (0.8 + r() * 0.5)) {
+      ctx.moveTo(px + big, y); ctx.arc(px, y + big * 0.35, big * (0.6 + r() * 0.5) + grow, 0, Math.PI * 2);
+    }
+    for (let py = y + 2; py < y + h - 1; py += small * 1.4) {
+      const a = small * (0.7 + r() * 0.5) + grow;
+      ctx.moveTo(x + a, py); ctx.arc(x, py, a, 0, Math.PI * 2);
+      const b2 = small * (0.7 + r() * 0.5) + grow;
+      ctx.moveTo(x + w + b2, py); ctx.arc(x + w, py, b2, 0, Math.PI * 2);
+    }
+    for (let px = x + 2; px < x + w - 1; px += small * 1.6) {
+      const a = small * (0.5 + r() * 0.4) + grow;
+      ctx.moveTo(px + a, y + h); ctx.arc(px, y + h, a, 0, Math.PI * 2);
+    }
+    ctx.fill();
+  }
+
+  function printPatch(ctx, r, kind, seed) {
+    const x = r.x, y = r.y, w = r.w, h = r.h;
+    if (kind === "cloud") {
+      ctx.fillStyle = "#9fcff3";
+      ctx.save(); ctx.translate(0.8, 1.8); bumps(ctx, x, y, w, h, seed, 5, 2.6, 0.4); ctx.restore();
+      ctx.fillStyle = "#e4f2fc";
+      bumps(ctx, x, y, w, h, seed, 5, 2.6, 0);
+      ctx.fillStyle = "#ffffff";
+      bumps(ctx, x + 1, y + 0.5, w - 2.5, h - 2, seed, 4.2, 2, 0);
+    } else if (kind === "lagoon") {
+      ctx.fillStyle = "#ffffff";
+      bumps(ctx, x, y, w, h, seed, 2.4, 2, 0.8);
+      ctx.fillStyle = "#93d0ea";
+      bumps(ctx, x + 0.8, y + 0.8, w - 1.6, h - 1.6, seed + 1, 1.6, 1.4, 0);
+      ctx.fillStyle = "#bfe6f1";
+      ctx.beginPath(); ctx.roundRect(x + 1.5, y + 1.5, w - 3, h - 3, 3); ctx.fill();
+      const rr = rng(seed + 2);
+      ctx.fillStyle = "#ffffff";
+      for (let i = 0; i < (w + h) * 0.5; i++) {
+        const side = rr(), t = rr();
+        const px = side < 0.5 ? x + t * w : (side < 0.75 ? x + 1 : x + w - 2);
+        const py = side < 0.25 ? y + 1 : side < 0.5 ? y + h - 2 : y + t * h;
+        ctx.fillRect(px, py, 1, 1);
+      }
+    }
   }
 
   function ribbon(ctx, r) {
@@ -541,7 +579,7 @@
     });
 
     for (const m of L.marks) {
-      if (m.kind === "panel") { stamp((ctx) => panel(ctx, m.r, m.el.dataset.tone || "#e8473b")); block(m.r); }
+      if (m.kind === "panel") { stamp((ctx) => printPatch(ctx, m.r, m.el.dataset.print, Math.round(m.r.y * 7 + m.r.x))); block(m.r); }
       else if (m.kind === "ribbon") { stamp((ctx) => ribbon(ctx, m.r)); block(m.r); }
       else if (m.kind === "photo") { stamp((ctx) => portrait(ctx, m.r), 2); block(m.r); }
       else if (m.kind === "title") { stamp((ctx) => script(ctx, m.r, m.el.dataset.text, m.el.dataset.style)); block(m.r, 0); }
@@ -684,11 +722,6 @@
       }
       const [r0, r1] = visibleRows();
       if (r1 > r0) render(r0, r1);
-      const t = (S.frame * FRAME) / 1000;
-      for (const [cv, top] of [[fringeTop, true], [fringeBottom, false]]) {
-        const rc = cv.getBoundingClientRect();
-        if (rc.bottom > 0 && rc.top < innerHeight) paintFringe(cv, top, t);
-      }
     }, FRAME);
   }
 
@@ -716,51 +749,45 @@
     weave.style.backgroundSize = `${S.cell}px ${S.cell}px`;
   }
 
-  // ——— бахрома ———
-  // ——— бахрома: скрученные кисточки с узелками и растрёпанными кончиками ———
-  const FRINGE_ROWS = 16;
+  // ——— бахрома: настоящая, из тонких нитей — это не принт, поэтому рисуется в экранном разрешении ———
+  const FRINGE_H = 46;
   function setupFringe(cv, top) {
-    cv.width = S.cols; cv.height = FRINGE_ROWS;
-    cv.style.width = S.cols * S.cell + "px";
-    cv.style.height = FRINGE_ROWS * S.cell + "px";
+    const dpr = window.devicePixelRatio || 1, w = S.cols * S.cell;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(FRINGE_H * dpr);
+    cv.style.width = w + "px";
+    cv.style.height = FRINGE_H + "px";
     cv.style.transform = top ? "scaleY(-1)" : "";
-    paintFringe(cv, top, 0);
-  }
-  function paintFringe(cv, top, t) {
-    const cols = S.cols, h = FRINGE_ROWS;
-    const img = new ImageData(cols, h), d = img.data;
-    const put = (x, y, c) => {
-      x = Math.round(x);
-      if (x < 0 || x >= cols || y < 0 || y >= h) return;
-      const i = (y * cols + x) * 4;
-      d[i] = c[0]; d[i + 1] = c[1]; d[i + 2] = c[2]; d[i + 3] = 255;
-    };
-    const HEM = hex("#cabea7"), KNOT = hex("#d6c9b1"), LIGHT = hex("#fbf7ef"), MID = hex("#e6dccb"), TWIST = hex("#c4b69d");
-    for (let x = 0; x < cols; x++) put(x, 0, HEM);
+    const ctx = cv.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, FRINGE_H);
     const r = rng(top ? 11 : 12);
-    for (let x = 3; x < cols - 3; x += 5) {
-      const len = 9 + Math.floor(r() * 4), bend = (r() - 0.5) * 2.2, ph = r() * 6;
-      const sway = reduceMotion ? 0 : Math.sin(t * 1.1 + ph + x * 0.1) * 0.9;
-      const at = (y) => x + bend * (y / len) * (y / len) + sway * (y / len);
-      // узелок
-      for (let k = -2; k <= 1; k++) { put(x + k, 1, KNOT); put(x + k, 2, KNOT); }
-      put(x - 2, 2, TWIST); put(x + 1, 2, TWIST);
-      // скрученный шнурок
-      for (let y = 3; y < len; y++) {
-        const c = at(y);
-        put(c - 1, y, LIGHT);
-        put(c, y, MID);
-        if ((y + x) % 3 === 0) put(c - 1, y, TWIST);
-        if ((y + x) % 3 === 1) put(c, y, TWIST);
+    const threads = ["#fffdf8", "#f3ede2", "#e6dece", "#d6ccb9"];
+    ctx.lineCap = "round";
+    // подрубка края
+    ctx.fillStyle = "#d9cfbd";
+    ctx.fillRect(0, 0, w, 2);
+    const step = 9, n = Math.floor((w - 6) / step) + 1, start = (w - (n - 1) * step) / 2;
+    for (let k = 0; k < n; k++) {
+      const x = start + k * step + (r() - 0.5) * 1.2;
+      const len = 34 + r() * 9, lean = (r() - 0.5) * 5;
+      const knotY = 7 + r() * 1.5;
+      // нити собраны в пучок, ниже узелка чуть расходятся
+      for (let i = 0; i < 6; i++) {
+        const spread = (i - 2.5) * 0.9;
+        const ex = x + lean + spread * (1.2 + r() * 0.8), ey = len - r() * 5;
+        ctx.strokeStyle = threads[(i + k) % threads.length];
+        ctx.lineWidth = 1.15;
+        ctx.beginPath();
+        ctx.moveTo(x + spread * 0.9, 1.5);
+        ctx.quadraticCurveTo(x + spread * 0.25, knotY, x + spread * 0.35, knotY + 2);
+        ctx.quadraticCurveTo(x + lean * 0.4 + spread, knotY + (ey - knotY) * 0.5, ex, ey);
+        ctx.stroke();
       }
-      // растрёпанный кончик
-      const c = at(len);
-      put(c - 2, len, MID); put(c - 0.5, len, LIGHT); put(c + 1, len, MID);
-      put(c - 3, len + 1, LIGHT); put(c + 1.5, len + 1, LIGHT);
-      if (r() > 0.4) put(c - 0.5, len + 1, MID);
-      if (r() > 0.5) put(c - 3.5, len + 2, MID);
+      ctx.fillStyle = "#e9e1d1";
+      ctx.beginPath(); ctx.ellipse(x, knotY + 0.5, 2.6, 2.1, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "rgba(90,70,40,.25)";
+      ctx.beginPath(); ctx.ellipse(x + 0.6, knotY + 1.4, 2.2, 1.2, 0, 0, Math.PI * 2); ctx.fill();
     }
-    cv.getContext("2d").putImageData(img, 0, 0);
   }
 
 

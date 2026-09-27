@@ -31,14 +31,15 @@
     position: relative; width: 960px; max-width: 100%;
     filter: drop-shadow(0 24px 30px rgba(0,0,0,.6)) drop-shadow(0 2px 3px rgba(0,0,0,.5));
   }
-  canvas.scene, canvas.fringe { image-rendering: pixelated; image-rendering: crisp-edges; display: block; }
+  canvas.scene { image-rendering: pixelated; image-rendering: crisp-edges; display: block; }
+  canvas.fringe { display: block; }
   canvas.fringe { margin: 0 auto; }
   .cloth { position: relative; overflow: hidden; }
   .cloth canvas.scene { position: absolute; inset: 0; width: 100%; height: 100%; }
-  .weave { position: absolute; inset: 0; pointer-events: none; }
+  .weave { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
   /* мягкие складки поверх всего полотна */
   .cloth::after {
-    content: ""; position: absolute; inset: 0; pointer-events: none;
+    content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 4;
     background:
       linear-gradient(174deg, transparent 0 14%, rgba(255,255,255,.14) 17%, transparent 21%),
       linear-gradient(183deg, transparent 0 41%, rgba(0,0,0,.14) 44%, rgba(255,255,255,.08) 47%, transparent 51%),
@@ -192,7 +193,7 @@
           <div class="hero-text">
           <h1 class="name">Настя Сидорова</h1>
           <p class="role">сценаристка · креатор</p>
-        <section class="panel intro" data-px="panel" data-tone="#e8473b">
+        <section class="panel intro" data-px="panel" data-print="cloud">
           <p class="label">О себе</p>
           <p>Придумываю креативные концепции и пишу сценарии для рекламы, брендового и документального видео.</p>
           <p>Работала с VK, Сбером, Самолётом, Росатомом, ВкусВиллом. Сейчас — креатор-сценаристка в студии Story Hunters.</p>
@@ -201,7 +202,7 @@
           </div>
         </header>
 
-        <section class="panel track" data-px="panel" data-tone="#ffb02e">
+        <section class="panel track" data-px="panel" data-print="cloud">
           <p class="label">Маршрут</p>
           <ol>
             <li><time>2025 — сейчас</time><span><b>Story Hunters</b> · креатор-сценаристка</span></li>
@@ -218,7 +219,7 @@
           <h2 id="cases-h" class="px-heading" data-px="title" data-style="heading" data-text="Кейсы"><span class="sr">Кейсы</span></h2>
 
           <div class="case-list">
-          <article class="panel case" data-px="panel" data-tone="#e8473b">
+          <article class="panel case" data-px="panel" data-print="lagoon">
             <p class="client">VK</p>
             <h3>«Открытый код»</h3>
             <dl>
@@ -229,7 +230,7 @@
             <a href="https://vk.com/video/playlist/-92204627_83" target="_blank" rel="noopener">Смотреть</a>
           </article>
 
-          <article class="panel case" data-px="panel" data-tone="#ffb02e">
+          <article class="panel case" data-px="panel" data-print="lagoon">
             <p class="client">Сбер · Школа 21</p>
             <h3>Промо к открытию IT-школы</h3>
             <dl>
@@ -239,7 +240,7 @@
             <a href="https://drive.google.com/file/d/1CWKqxCIYh46ycRhd-dU0OdoUuWP2zm_2/view" target="_blank" rel="noopener">Смотреть</a>
           </article>
 
-          <article class="panel case" data-px="panel" data-tone="#35a03a">
+          <article class="panel case" data-px="panel" data-print="lagoon">
             <p class="client">Город Арзамас</p>
             <h3>Рекламный ролик города</h3>
             <dl>
@@ -249,7 +250,7 @@
             <a href="https://vimeo.com/1007658703" target="_blank" rel="noopener">Смотреть</a>
           </article>
 
-          <article class="panel case" data-px="panel" data-tone="#ff9ab5">
+          <article class="panel case" data-px="panel" data-print="lagoon">
             <p class="client">Spirit Fitness</p>
             <h3>«Это в твоём духе»</h3>
             <dl>
@@ -259,7 +260,7 @@
             <a href="https://vkvideo.ru/video-146452013_456242235" target="_blank" rel="noopener">Смотреть</a>
           </article>
 
-          <article class="panel case" data-px="panel" data-tone="#2567b9">
+          <article class="panel case" data-px="panel" data-print="lagoon">
             <p class="client">Росатом</p>
             <h3>Клип «Я студент Росатом»</h3>
             <dl>
@@ -275,7 +276,7 @@
         <div class="shells" data-px="shells"></div>
 
         <div class="beach-row">
-        <footer class="panel contacts" data-px="panel" data-tone="#1c2a5c">
+        <footer class="panel contacts" data-px="panel" data-print="sand">
           <h2>Пишите на курорт</h2>
           <p>Отвечаю быстро, даже с лежака.</p>
           <div class="links">
