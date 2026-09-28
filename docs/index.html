@@ -98,7 +98,7 @@
   .stop b { font-weight: 700; }
   .stop a { color: inherit; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
   .stop a:hover, .stop a:focus-visible { text-decoration-thickness: 2px; outline: none; }
-  .case-list { display: flex; flex-direction: column; gap: calc(var(--cell) * 30); padding: calc(var(--cell) * 3) 0 calc(var(--cell) * 44); }
+  .case-list { display: flex; flex-direction: column; gap: calc(var(--cell) * 46); padding: calc(var(--cell) * 3) 0 calc(var(--cell) * 44); }
   .case { margin-bottom: 0; }
   .case { padding: calc(var(--cell) * 3) calc(var(--cell) * 2); }
   .horizon { height: 0; }
@@ -172,7 +172,7 @@
     .stop { width: 100%; min-width: 0; max-width: none; margin: 0; }
     .stop:nth-child(even) { margin-left: 0; }
     .px-heading { height: calc(var(--cell) * 22); }
-    .case-list { display: flex; flex-direction: column; gap: calc(var(--cell) * 12); padding-bottom: calc(var(--cell) * 22); }
+    .case-list { display: flex; flex-direction: column; gap: calc(var(--cell) * 14); padding-bottom: calc(var(--cell) * 40); }
     .case-list .case { width: 50%; margin: 0; }
     .case-list .case:nth-child(even) { margin-left: auto; }
     .beach-row { display: grid; grid-template-columns: 1fr 240px; gap: calc(var(--cell) * 8); align-items: center; }
@@ -240,6 +240,11 @@
         <section class="cases" aria-labelledby="cases-h">
           <h2 id="cases-h" class="px-heading cases-title" data-px="title" data-style="heading" data-text="Кейсы"><span class="sr">Кейсы</span></h2>
 
+          <span hidden data-name="umbrella" data-sprite="sprites/umbrella.png"></span>
+          <span hidden data-name="walker" data-sprite="sprites/walker.png"></span>
+          <span hidden data-name="bather" data-sprite="sprites/bather.png"></span>
+          <span hidden data-name="ladies" data-sprite="sprites/ladies.png"></span>
+          <span hidden data-name="family" data-sprite="sprites/family.png"></span>
           <div class="case-list">
             <article id="case-vk" class="panel case" data-px="panel" data-print="bare">
               <div class="case-head">

@@ -48,6 +48,8 @@
     "#a8323a", "#7e2530",
     // логотипы
     "#0077ff", "#21a038", "#0a4da2",
+    // живопись с референсов
+    "#487c79", "#5a2811", "#5b3621", "#5d3d21", "#66472f", "#68795d", "#694130", "#7db6aa", "#836d4b", "#885527", "#a2723c", "#ad6a24", "#ae9368", "#b57a37", "#bba375", "#bc7f38", "#bf8137", "#bf9e61", "#c7b890", "#cb9650", "#d19a54", "#deaa5b", "#e3ba76", "#e4b56c", "#ea7e22", "#eaca8a", "#eccb8d", "#ede4d2", "#f3a01f", "#f4de93",
   ].map(hex);
 
   // ——— шум ———
@@ -830,171 +832,35 @@
       np = rect("#case-np"), gpn = rect("#case-gpn"), end = rect(".sand-end"), list = rect(".case-list");
     const twoCol = sber.x > vk.x + 10;
     const boxes = [];
-    // персонажи и предметы пляжа — всё сбоку, в одном масштабе (человек ≈ 34 клетки)
-    const OUT = "#1c2a5c";
-    const ground = (cx, gy, w, h, draw, shadowW = w * 0.9) => {
+    // живопись с референсов: фигуры с тенями и зонт, стоят на песке над следующим кейсом
+    const put = (name, cx, groundY, h) => {
+      const img = spriteByName(name);
+      if (!img) return;
+      const w = h * img.width / img.height;
       stamp((ctx) => {
-        ctx.fillStyle = "#dcc59c";
-        ctx.beginPath(); ctx.ellipse(cx + 2, gy, shadowW / 2, 2, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
+        ctx.drawImage(img, cx - w / 2, groundY - h, w, h);
       });
-      stamp((ctx) => { ctx.translate(cx, gy); ctx.lineJoin = "round"; ctx.lineCap = "round"; draw(ctx); });
-      boxes.push({ x: cx - w / 2, y: gy - h, w, h: h + 2 });
+      boxes.push({ x: cx - w / 2, y: groundY - h, w, h });
     };
-    const poly = (ctx, pts, fill, stroke = OUT) => {
-      ctx.beginPath(); pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); ctx.closePath();
-      ctx.fillStyle = fill; ctx.fill();
-      if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 1; ctx.stroke(); }
-    };
-    const circle = (ctx, x, y, r, fill, stroke = OUT) => {
-      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fillStyle = fill; ctx.fill();
-      if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 1; ctx.stroke(); }
-    };
-    const stripes = (ctx, clipPts, colors, step, vertical = false) => {
-      ctx.save(); ctx.beginPath(); clipPts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); ctx.closePath(); ctx.clip();
-      for (let i = -60; i < 60; i++) { ctx.fillStyle = colors[((i % colors.length) + colors.length) % colors.length];
-        vertical ? ctx.fillRect(i * step, -80, step, 160) : ctx.fillRect(-80, i * step, 160, step); }
-      ctx.restore();
-      ctx.beginPath(); clipPts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); ctx.closePath();
-      ctx.strokeStyle = OUT; ctx.lineWidth = 1; ctx.stroke();
-    };
-    const SKIN = "#f2c29b", SKIN_D = "#d8956c";
-
-    // зонт: полосатый купол на шесте
-    const umbrella = (ctx, s = 1) => {
-      ctx.scale(s, s);
-      ctx.strokeStyle = "#8a4b1f"; ctx.lineWidth = 1.6;
-      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(1.5, -34); ctx.stroke();
-      const dome = [];
-      for (let i = 0; i <= 20; i++) { const a = Math.PI + (i / 20) * Math.PI; dome.push([1.5 + Math.cos(a) * 20, -32 + Math.sin(a) * 9]); }
-      for (let i = 0; i <= 14; i++) dome.push([21.5 - i * (40 / 14), -32 + (i % 2) * 1.6]);
-      stripes(ctx, dome, ["#e8473b", "#fffaf0"], 5, true);
-      circle(ctx, 1.5, -41.5, 1.2, "#ffd23f");
-    };
-
-    // толстый дядя в тельняшке и фуражке на шезлонге, поднимает стакан пива
-    const lounger = (ctx) => {
-      // шезлонг
-      ctx.strokeStyle = "#8a4b1f"; ctx.lineWidth = 1.4;
-      ctx.beginPath(); ctx.moveTo(-20, 0); ctx.lineTo(-10, -12); ctx.moveTo(-6, 0); ctx.lineTo(-18, -24); ctx.moveTo(22, 0); ctx.lineTo(18, -7); ctx.stroke();
-      stripes(ctx, [[-20, -26], [-10, -9], [20, -7], [20, -4], [-12, -5], [-23, -24]], ["#e8473b", "#fffaf0"], 2.2, true);
-      // ноги
-      poly(ctx, [[8, -12], [24, -9], [24, -6], [8, -7]], SKIN);
-      poly(ctx, [[22, -10], [27, -9], [27, -5], [22, -5]], "#2567b9");
-      // шорты
-      poly(ctx, [[2, -14], [12, -12], [12, -7], [2, -7]], "#1a52a6");
-      // пузо в тельняшке
-      ctx.save(); ctx.beginPath(); ctx.ellipse(-3, -15, 10, 9, -0.35, 0, Math.PI * 2); ctx.clip();
-      for (let y = -26; y < -4; y += 2) { ctx.fillStyle = (y / 2) % 2 ? "#fffaf0" : "#2567b9"; ctx.fillRect(-15, y, 24, 2); }
-      ctx.restore();
-      ctx.beginPath(); ctx.ellipse(-3, -15, 10, 9, -0.35, 0, Math.PI * 2); ctx.strokeStyle = OUT; ctx.lineWidth = 1; ctx.stroke();
-      // голова и фуражка
-      circle(ctx, -14, -25, 4.3, SKIN);
-      ctx.fillStyle = OUT; ctx.fillRect(-15, -26, 1, 1);
-      ctx.fillStyle = SKIN_D; ctx.fillRect(-18.5, -24.5, 1.5, 1.2);
-      poly(ctx, [[-19, -28], [-9, -29.5], [-9.5, -32], [-18, -32]], "#fffaf0");
-      poly(ctx, [[-20.5, -28.2], [-12, -28.8], [-13, -27], [-20, -26.8]], "#101010");
-      ctx.fillStyle = "#ffd23f"; ctx.fillRect(-15, -30.5, 1.5, 1.2);
-      // рука с пивом вверх — «за вас!»
-      ctx.strokeStyle = OUT; ctx.lineWidth = 3.2;
-      ctx.beginPath(); ctx.moveTo(-6, -21); ctx.lineTo(-2, -29); ctx.lineTo(1, -35); ctx.stroke();
-      ctx.strokeStyle = SKIN; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(-6, -21); ctx.lineTo(-2, -29); ctx.lineTo(1, -35); ctx.stroke();
-      poly(ctx, [[-1.5, -42], [4.5, -42], [3.8, -34], [-0.8, -34]], "#ffb02e");
-      ctx.fillStyle = "#fffaf0"; ctx.beginPath(); ctx.ellipse(1.5, -42.3, 3.6, 1.4, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = "#fff08a"; ctx.fillRect(0, -40, 1, 4);
-    };
-
-    // ларёк «ПИВО»
-    const kiosk = (ctx) => {
-      poly(ctx, [[-19, 0], [19, 0], [19, -24], [-19, -24]], "#2567b9");
-      ctx.fillStyle = "#1a52a6"; ctx.fillRect(-19, -4, 38, 4);
-      poly(ctx, [[-14, -22], [8, -22], [8, -11], [-14, -11]], "#9fcff3");
-      ctx.fillStyle = "#fffaf0"; ctx.fillRect(-14, -12, 22, 2);
-      // кружки на прилавке
-      for (const x of [-11, -5]) { poly(ctx, [[x, -17], [x + 4, -17], [x + 4, -12], [x, -12]], "#ffb02e"); ctx.fillStyle = "#fffaf0"; ctx.fillRect(x, -18, 4, 1.5); }
-      // дверь
-      poly(ctx, [[11, -2], [17, -2], [17, -20], [11, -20]], "#1a52a6");
-      ctx.fillStyle = "#ffd23f"; ctx.fillRect(12, -11, 1.2, 1.2);
-      // полосатый навес
-      stripes(ctx, [[-22, -24], [22, -24], [20, -30], [-20, -30]], ["#e8473b", "#fffaf0"], 3.5, true);
-      // вывеска
-      poly(ctx, [[-20, -31], [20, -31], [20, -39], [-20, -39]], "#ffd23f");
-      // бочка кваса рядом
-      poly(ctx, [[-30, 0], [-21, 0], [-20, -9], [-31, -9]], "#e8473b");
-      ctx.fillStyle = "#963c19"; ctx.fillRect(-31, -6, 11, 1); ctx.fillRect(-31, -3, 11, 1);
-      circle(ctx, -28, 0.5, 1.5, "#3f3a40"); circle(ctx, -23, 0.5, 1.5, "#3f3a40");
-    };
-
-    // продавщица горячей кукурузы в голубом фартуке, над кастрюлей пар
-    const cornLady = (ctx) => {
-      // кастрюля на тележке
-      poly(ctx, [[6, -8], [22, -8], [21, -17], [7, -17]], "#b3aeb5");
-      ctx.fillStyle = "#8d8893"; ctx.fillRect(6, -18, 16, 1.6);
-      ctx.strokeStyle = "#3f3a40"; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(5, -8); ctx.lineTo(23, -8); ctx.moveTo(8, -8); ctx.lineTo(8, 0); ctx.moveTo(20, -8); ctx.lineTo(20, 0); ctx.stroke();
-      circle(ctx, 8, 0, 1.4, "#3f3a40"); circle(ctx, 20, 0, 1.4, "#3f3a40");
-      for (const [x, r] of [[10, -0.3], [14, 0.1], [18, 0.35]]) {
-        ctx.save(); ctx.translate(x, -19); ctx.rotate(r);
-        poly(ctx, [[-1.6, 0], [1.6, 0], [1.3, -7], [-1.3, -7]], "#ffd23f", "#dc6e2e");
-        ctx.fillStyle = "#5dbb3c"; ctx.fillRect(-2, -1, 4, 1.4); ctx.restore();
-      }
-      // пар
-      for (const [x, y, r] of [[12, -29, 2.5], [15, -31, 3], [18, -34, 2.6], [14, -36, 2.2], [17, -39, 1.8]]) circle(ctx, x, y, r, "#ffffff", "#b3aeb5");
-      // женщина
-      poly(ctx, [[-10, -2], [-7, -2], [-7, -9], [-10, -9]], SKIN); poly(ctx, [[-4, -2], [-1, -2], [-1, -9], [-4, -9]], SKIN);
-      ctx.fillStyle = "#1c2a5c"; ctx.fillRect(-11, -2, 5, 2); ctx.fillRect(-5, -2, 5, 2);
-      poly(ctx, [[-14, -9], [3, -9], [0, -26], [-11, -26]], "#e8473b");
-      poly(ctx, [[-11, -10], [0, -10], [-1, -22], [-10, -22]], "#93d0ea");
-      ctx.fillStyle = "#6db6e2"; ctx.fillRect(-9, -16, 7, 2.5);
-      // рука к кастрюле
-      ctx.strokeStyle = OUT; ctx.lineWidth = 2.8; ctx.beginPath(); ctx.moveTo(-1, -23); ctx.lineTo(6, -17); ctx.stroke();
-      ctx.strokeStyle = SKIN; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(-1, -23); ctx.lineTo(6, -17); ctx.stroke();
-      // голова, косынка
-      circle(ctx, -5.5, -30, 4.2, SKIN);
-      poly(ctx, [[-10, -30], [-5.5, -36], [-1, -30], [-3, -31.5], [-8, -31.5]], "#fffaf0");
-      ctx.fillStyle = "#e8473b"; ctx.fillRect(-7, -34, 1, 1); ctx.fillRect(-4.5, -33, 1, 1);
-      ctx.fillStyle = OUT; ctx.fillRect(-4, -30, 1, 1);
-      ctx.fillStyle = "#e8473b"; ctx.fillRect(-4, -27.5, 2, 0.8);
-    };
-
-    // волейбольная сетка и мяч, летящий над ней
-    const volley = (ctx) => {
-      ctx.strokeStyle = "#8a4b1f"; ctx.lineWidth = 1.6;
-      ctx.beginPath(); ctx.moveTo(-28, 0); ctx.lineTo(-28, -28); ctx.moveTo(28, 0); ctx.lineTo(28, -28); ctx.stroke();
-      ctx.strokeStyle = "#80797f"; ctx.lineWidth = 0.9;
-      for (let x = -26; x <= 26; x += 3) { ctx.beginPath(); ctx.moveTo(x, -26); ctx.lineTo(x, -17); ctx.stroke(); }
-      for (let y = -26; y <= -17; y += 3) { ctx.beginPath(); ctx.moveTo(-28, y); ctx.lineTo(28, y); ctx.stroke(); }
-      ctx.fillStyle = "#1c2a5c"; ctx.fillRect(-28, -27.5, 56, 2);
-      // траектория мяча
-      ctx.strokeStyle = "#963c19"; ctx.lineWidth = 0.9; ctx.setLineDash([1.5, 2]);
-      ctx.beginPath(); ctx.moveTo(-20, -16); ctx.quadraticCurveTo(-4, -44, 12, -36); ctx.stroke(); ctx.setLineDash([]);
-      circle(ctx, 14, -35, 4.2, "#fffaf0");
-      ctx.fillStyle = "#ffd23f"; ctx.beginPath(); ctx.arc(14, -35, 4.2, -0.3, 1.2); ctx.lineTo(14, -35); ctx.fill();
-      ctx.fillStyle = "#2567b9"; ctx.beginPath(); ctx.arc(14, -35, 4.2, 2.2, 3.5); ctx.lineTo(14, -35); ctx.fill();
-      circle(ctx, 14, -35, 4.2, "rgba(0,0,0,0)");
-    };
-
-    const mid = (q) => q.y + q.h / 2;
     const B = (q) => q.y + q.h;
     const z = Math.min(1, cols / 160) * (twoCol ? 1 : 1.25);
-    const S = (fn, s) => (ctx) => { ctx.scale(s, s); fn(ctx); };
+    const P = 44 * z; // рост фигурки с тенью
+    const U = 64 * z; // зонт
     if (twoCol) {
-      ground(cols * 0.7, sber.y - 3, 62 * z, 46 * z, S(lounger, z), 56 * z);
-      ground(cols * 0.9, sber.y - 3, 40 * z, 44 * z, S(umbrella, z), 44 * z);
-      ground(cols * 0.26, arz.y - 3, 64 * z, 40 * z, S(kiosk, z));
-      printText(L, cols * 0.26, arz.y - 3 - 35 * z, 0, "ПИВО · КВАС",
-        `font: 400 ${Math.round(3.7 * z * L.cell)}px/1 "Russo One", sans-serif; color: #c7302b; letter-spacing: .04em;`);
-      ground(cols * 0.74, np.y - 3, 40 * z, 40 * z, S(cornLady, z));
-      ground(cols * 0.26, gpn.y - 3, 60 * z, 40 * z, S(volley, z), 60 * z);
-      ground(cols * 0.84, B(gpn) + 16 * z, 40 * z, 44 * z, S(umbrella, z), 44 * z);
+      put("umbrella", cols * 0.6, sber.y + 2, U);
+      put("bather", cols * 0.84, sber.y + 2, P);
+      put("ladies", cols * 0.25, arz.y + 1, P);
+      put("walker", cols * 0.75, np.y + 1, P);
+      put("family", cols * 0.25, gpn.y + 1, P);
+      put("umbrella", cols * 0.78, B(gpn) + 30 * z, U);
     } else {
-      ground(cols * 0.42, sber.y - 3, 62 * z, 46 * z, S(lounger, z), 56 * z);
-      ground(cols * 0.84, sber.y - 3, 40 * z, 44 * z, S(umbrella, z * 0.8), 36 * z);
-      ground(cols * 0.5, arz.y - 3, 64 * z, 40 * z, S(kiosk, z));
-      printText(L, cols * 0.5, arz.y - 3 - 35 * z, 0, "ПИВО · КВАС",
-        `font: 400 ${Math.round(3.7 * z * L.cell)}px/1 "Russo One", sans-serif; color: #c7302b; letter-spacing: .04em;`);
-      ground(cols * 0.5, np.y - 3, 40 * z, 40 * z, S(cornLady, z));
-      ground(cols * 0.5, gpn.y - 3, 60 * z, 40 * z, S(volley, z), 60 * z);
-      ground(cols * 0.72, B(gpn) + 40 * z, 40 * z, 44 * z, S(umbrella, z), 44 * z);
+      put("umbrella", cols * 0.26, sber.y + 1, U * 0.8);
+      put("bather", cols * 0.68, sber.y + 1, P * 0.85);
+      put("ladies", cols * 0.5, arz.y + 1, P * 0.85);
+      put("walker", cols * 0.52, np.y + 1, P * 0.85);
+      put("family", cols * 0.5, gpn.y + 1, P * 0.85);
+      put("umbrella", cols * 0.72, B(gpn) + 44 * z, U * 0.8);
     }
     return boxes;
   }
