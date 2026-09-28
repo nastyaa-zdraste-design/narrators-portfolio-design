@@ -833,34 +833,55 @@
     const twoCol = sber.x > vk.x + 10;
     const boxes = [];
     // живопись с референсов: фигуры с тенями и зонт, стоят на песке над следующим кейсом
-    const put = (name, cx, groundY, h) => {
+    cloth.querySelectorAll("canvas.figure").forEach((c) => c.remove());
+    const FIG_RES = 2;
+    const put = (name, cx, groundY, h, withShadow = true) => {
       const img = spriteByName(name);
       if (!img) return;
       const w = h * img.width / img.height;
-      stamp((ctx) => {
-        ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
-        ctx.drawImage(img, cx - w / 2, groundY - h, w, h);
+      if (!withShadow) stamp((ctx) => { ctx.fillStyle = "#c4a577"; ctx.beginPath(); ctx.ellipse(cx - w * 0.15, groundY, w * 0.42, 2.2, 0, 0, Math.PI * 2); ctx.fill(); });
+      // ровная тень от силуэта, отброшенная влево на песок
+      if (withShadow) stamp((ctx) => {
+        ctx.setTransform(1.8, 0, 1.3, 0.34, cx, groundY);
+        ctx.drawImage(tinted(img, "#c4a577"), -w / 2, -h, w, h);
       });
-      boxes.push({ x: cx - w / 2, y: groundY - h, w, h });
+      // сам человек — на отдельном слое с мелким пикселем, чтобы было чётко
+      const cv = document.createElement("canvas");
+      cv.className = "figure"; cv.setAttribute("aria-hidden", "true");
+      const cw = Math.ceil(w * FIG_RES), ch = Math.ceil(h * FIG_RES);
+      cv.width = cw; cv.height = ch;
+      const g = cv.getContext("2d", { willReadFrequently: true });
+      g.imageSmoothingEnabled = true; g.imageSmoothingQuality = "high";
+      g.drawImage(img, 0, 0, cw, ch);
+      const data = g.getImageData(0, 0, cw, ch), d = data.data;
+      for (let i = 0; i < d.length; i += 4) {
+        if (d[i + 3] < 110) { d[i + 3] = 0; continue; }
+        const c = nearest(d[i], d[i + 1], d[i + 2]);
+        d[i] = c[0]; d[i + 1] = c[1]; d[i + 2] = c[2]; d[i + 3] = 255;
+      }
+      g.putImageData(data, 0, 0);
+      Object.assign(cv.style, { left: (cx - w / 2) * L.cell + "px", top: (groundY - h) * L.cell + "px", width: w * L.cell + "px", height: h * L.cell + "px" });
+      cloth.appendChild(cv);
+      boxes.push({ x: cx - w / 2 - h * 0.4, y: groundY - h, w: w + h * 0.4, h });
     };
     const B = (q) => q.y + q.h;
     const z = Math.min(1, cols / 160) * (twoCol ? 1 : 1.25);
-    const P = 44 * z; // рост фигурки с тенью
+    const P = 36 * z; // рост человека
     const U = 64 * z; // зонт
     if (twoCol) {
-      put("umbrella", cols * 0.6, sber.y + 2, U);
-      put("bather", cols * 0.84, sber.y + 2, P);
-      put("ladies", cols * 0.25, arz.y + 1, P);
-      put("walker", cols * 0.75, np.y + 1, P);
-      put("family", cols * 0.25, gpn.y + 1, P);
-      put("umbrella", cols * 0.78, B(gpn) + 30 * z, U);
+      put("umbrella", cols * 0.6, sber.y + 2, U, false);
+      put("bather", cols * 0.88, sber.y + 2, P);
+      put("ladies", cols * 0.3, arz.y + 1, P);
+      put("walker", cols * 0.8, np.y + 1, P);
+      put("family", cols * 0.3, gpn.y + 1, P);
+      put("umbrella", cols * 0.78, B(gpn) + 30 * z, U, false);
     } else {
-      put("umbrella", cols * 0.26, sber.y + 1, U * 0.8);
+      put("umbrella", cols * 0.26, sber.y + 1, U * 0.8, false);
       put("bather", cols * 0.68, sber.y + 1, P * 0.85);
       put("ladies", cols * 0.5, arz.y + 1, P * 0.85);
       put("walker", cols * 0.52, np.y + 1, P * 0.85);
       put("family", cols * 0.5, gpn.y + 1, P * 0.85);
-      put("umbrella", cols * 0.72, B(gpn) + 44 * z, U * 0.8);
+      put("umbrella", cols * 0.72, B(gpn) + 44 * z, U * 0.8, false);
     }
     return boxes;
   }
