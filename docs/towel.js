@@ -465,7 +465,8 @@
   }
 
   function printPatch(ctx, r, kind, seed) {
-    const x = r.x, y = r.y, w = r.w, h = r.h;
+    const x = r.x, w = r.w, h = r.h;
+    let y = r.y;
     if (kind === "cloud") {
       ctx.fillStyle = "#9fcff3";
       ctx.save(); ctx.translate(0.8, 1.8); bumps(ctx, x, y, w, h, seed, 5, 2.6, 0.4); ctx.restore();
@@ -474,18 +475,25 @@
       ctx.fillStyle = "#ffffff";
       bumps(ctx, x + 1, y + 0.5, w - 2.5, h - 2, seed, 4.2, 2, 0);
     } else if (kind === "island") {
-      const isle = (g, c) => {
+      // остров сбоку: песчаный холм поднимается из воды
+      const hill = (g, c) => {
         ctx.fillStyle = c;
-        ctx.beginPath(); ctx.ellipse(x + w / 2, y + h / 2, w / 2 + 3 + g, h / 2 + 3.5 + g, 0, 0, Math.PI * 2); ctx.fill();
-        bumps(ctx, x + 2, y, w - 4, h, seed, 3.4, 3, g - 0.6);
+        ctx.beginPath();
+        ctx.moveTo(x - 6 - g, y + h + 1.5);
+        ctx.bezierCurveTo(x - 4 - g, y - 1 - g, x + w * 0.2, y - 5 - g, x + w / 2, y - 5 - g);
+        ctx.bezierCurveTo(x + w * 0.8, y - 5 - g, x + w + 4 + g, y - 1 - g, x + w + 6 + g, y + h + 1.5);
+        ctx.closePath(); ctx.fill();
       };
-      isle(2.2, "#ffffff"); isle(1.2, "#93d0ea"); isle(0.3, "#dcc59c"); isle(-0.5, "#f6ead3");
+      hill(0.8, "#dcc59c"); hill(0, "#f6ead3");
+      ctx.fillStyle = "#ecdcbc"; ctx.fillRect(x - 6, y + h - 1, w + 12, 2.5);
+      // линия воды и пена у подножия
+      ctx.fillStyle = "#ffffff"; ctx.fillRect(x - 8, y + h + 1.5, w + 16, 1.2);
+      ctx.fillStyle = "#bfe6f1"; ctx.fillRect(x - 5, y + h + 2.7, w + 10, 1);
       // пальмочка на краю острова
-      const px = x + 3.5, base = y + 3;
-      ctx.fillStyle = "#35a03a";
-      ctx.beginPath(); ctx.ellipse(px, base, 3, 1.3, 0, 0, Math.PI * 2); ctx.fill();
+      const px = x + 4, base = y - 2;
+      y -= 6;
       ctx.strokeStyle = "#8a4b1f"; ctx.lineWidth = 1.3; ctx.lineCap = "round";
-      ctx.beginPath(); ctx.moveTo(px, base); ctx.quadraticCurveTo(px - 1.5, y - 1, px + 0.5, y - 5); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(px, base); ctx.quadraticCurveTo(px - 1.5, (base + y) / 2 - 2, px + 0.5, y - 5); ctx.stroke();
       ctx.lineWidth = 1.2;
       for (const [dx, dy, c] of [[-5, 2.2, "#1f8233"], [5, 2.4, "#35a03a"], [-3.8, -1.8, "#5dbb3c"], [3.8, -1.6, "#1f8233"], [0.5, -3.5, "#5dbb3c"]]) {
         ctx.strokeStyle = c;
@@ -822,59 +830,64 @@
       np = rect("#case-np"), gpn = rect("#case-gpn"), end = rect(".sand-end"), list = rect(".case-list");
     const twoCol = sber.x > vk.x + 10;
     const boxes = [];
-    const place = (cx, cy, w, h, rot, draw, kind = 1) => {
-      stamp((ctx) => { ctx.translate(cx, cy); ctx.rotate(rot); draw(ctx); }, kind);
-      const e = Math.max(w, h) / 2;
-      boxes.push({ x: cx - e, y: cy - e, w: e * 2, h: e * 2 });
+    // всё как на открытке — вид сбоку: вещи стоят на песке, под каждой короткая тень
+    const stand = (cx, groundY, w, h, draw) => {
+      stamp((ctx) => {
+        ctx.fillStyle = "#dcc59c";
+        ctx.beginPath(); ctx.ellipse(cx + w * 0.06, groundY, w * 0.46, Math.max(1.4, h * 0.07), 0, 0, Math.PI * 2); ctx.fill();
+      });
+      stamp((ctx) => { ctx.translate(cx, groundY - h / 2); draw(ctx); });
+      boxes.push({ x: cx - w / 2, y: groundY - h, w, h: h + 2 });
     };
-    const drawSprite = (img, w) => (ctx) => {
-      const h = w * img.height / img.width;
-      ctx.drawImage(tinted(img, "#c4a577"), -w / 2 + 1, -h / 2 + 1.5, w, h);
-      ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
-      ctx.drawImage(img, -w / 2, -h / 2, w, h);
-    };
-    const put = (name, cx, cy, w, rot) => {
+    const sprite = (name, cx, groundY, w, rot = 0) => {
       const img = spriteByName(name);
-      if (img) place(cx, cy, w, w * img.height / img.width, rot, drawSprite(img, w));
+      if (!img) return;
+      const h0 = w * img.height / img.width;
+      const h = rot ? Math.abs(w * Math.sin(rot)) * 0.35 + h0 * Math.abs(Math.cos(rot)) * 0.55 : h0;
+      stand(cx, groundY, w, h, (ctx) => {
+        ctx.rotate(rot);
+        ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
+        ctx.drawImage(img, -w / 2, -h0 / 2, w, h0);
+      });
     };
-    const km = twoCol ? k : Math.min(1, cols / 90);
-    const B = (q) => q.y + q.h;
-
-    // крокодил: от левого края «Кейсов» по диагонали к правому краю «Школы 21»
-    const croc = spriteByName("croc");
-    if (croc) {
-      const x0 = twoCol ? title.x + title.w * 0.2 : 2, y0 = title.y + title.h * 0.55;
-      const x1 = sber.x + sber.w, y1 = twoCol ? sber.y + sber.h * 0.3 : sber.y + sber.h * 0.35;
-      const len = Math.min(Math.hypot(x1 - x0, y1 - y0), cols * 0.95);
-      place((x0 + x1) / 2, (y0 + y1) / 2, len, len * croc.height / croc.width, Math.atan2(y1 - y0, x1 - x0), drawSprite(croc, len));
-    }
-    const shirt = (cx, cy, w, rot) => {
-      place(cx, cy, w, w, rot, (ctx) => drawTshirt(ctx, w));
-      printText(L, cx - Math.sin(rot) * w * 0.08, cy + Math.cos(rot) * w * 0.08, rot, 'Я <span style="color:#e8473b">❤</span><br>NARRATORS',
-        `font: 400 ${Math.round(w * L.cell * 0.105)}px/1.15 "Russo One", sans-serif; color: #1c2a5c;`);
+    const hat = (cx, gy, w) => stand(cx, gy, w, w * 0.5, (ctx) => { ctx.translate(0, -w * 0.04); drawStrawHat(ctx, w); });
+    // бельевая верёвка с футболкой «Я ❤ NARRATORS»
+    const line = (x0, x1, yTop, w) => {
+      const sag = 4, cx = (x0 + x1) / 2, top = yTop + sag;
+      stamp((ctx) => {
+        ctx.fillStyle = "#963c19"; ctx.fillRect(x0 - 0.7, yTop - 1, 1.6, w * 1.35);
+        ctx.fillStyle = "#dcc59c"; ctx.beginPath(); ctx.ellipse(x0, yTop + w * 1.35, 3, 1.2, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = "#a4845a"; ctx.lineWidth = 1.3;
+        ctx.beginPath(); ctx.moveTo(x0, yTop); ctx.quadraticCurveTo(cx, yTop + sag * 2, x1, yTop); ctx.stroke();
+        ctx.translate(cx, top + w * 0.47); drawTshirt(ctx, w);
+        ctx.fillStyle = "#e8473b";
+        ctx.fillRect(-w * 0.2, -w * 0.5, 1.4, 3); ctx.fillRect(w * 0.2 - 1.4, -w * 0.5, 1.4, 3);
+      });
+      boxes.push({ x: Math.min(x0, x1), y: yTop - 2, w: Math.abs(x1 - x0), h: w * 1.4 });
+      // надпись — по центру груди футболки
+      printText(L, cx, top + w * 0.47 + w * 0.02, 0, 'Я <span style="color:#e8473b">❤</span><br>NARRATORS',
+        `font: 400 ${Math.round(w * L.cell * 0.1)}px/1.15 "Russo One", sans-serif; color: #1c2a5c;`);
     };
-    const seeds = (cx, cy, sz) => place(cx, cy, sz * 2.2, sz * 1.6, 0, (ctx) => drawSeeds(ctx, 11, sz, 5));
-    const flip = (cx, cy, w) => place(cx, cy, w, w * 1.1, 0.3, (ctx) => drawFlipflops(ctx, w));
-    const hat = (cx, cy, w) => place(cx, cy, w, w * 0.5, -0.08, (ctx) => drawStrawHat(ctx, w));
     const mid = (q) => q.y + q.h / 2;
-    // крупный план сверху: вещи большие, часть уходит за край полотенца
+    const B = (q) => q.y + q.h;
     const z = cols / 160;
     if (twoCol) {
-      put("corn", 10 * z, mid(sber), 64 * z, -0.35);
-      put("cup", 58 * z, mid(sber) + 2, 26 * z, 0.12);
-      put("cap", cols - 16 * z, mid(arz), 54 * z, -0.2);
-      put("newspaper", 24 * z, mid(np), 84 * z, -0.12);
-      shirt(cols - 4 * z, mid(gpn) + 4 * z, 64 * z, -0.25);
-      flip(cols * 0.76, mid(gpn) + 12 * z, 36 * z);
-      hat(cols * 0.6, mid(gpn) - 2 * z, 44 * z);
+      sprite("croc", cols * 0.74, B(vk) + 2, 74 * z);
+      sprite("corn", 30 * z, B(sber) - 2, 56 * z, 0.62);
+      sprite("cup", 64 * z, B(sber), 18 * z);
+      sprite("cap", cols - 42 * z, B(arz) - 2, 40 * z);
+      hat(cols - 12 * z, B(arz) + 2, 40 * z);
+      sprite("vobla", 34 * z, B(np), 62 * z);
+      line(cols * 0.56, cols + 4, gpn.y - 2, 34 * z);
     } else {
-      put("cup", cols - 8 * z, B(vk) + 12 * z, 30 * z, 0.15);
-      put("corn", 18 * z, B(sber) + 14 * z, 80 * z, -0.25);
-      put("cap", cols - 20 * z, B(arz) + 14 * z, 66 * z, 0.12);
-      put("newspaper", cols * 0.62, (B(np) + gpn.y) / 2, 84 * z, -0.1);
-      shirt(cols - 6 * z, B(gpn) + 26 * z, 84 * z, -0.2);
-      hat(cols * 0.36, B(gpn) + 18 * z, 60 * z);
-      flip(cols * 0.12, B(gpn) + 36 * z, 44 * z);
+      // на телефоне вещи стоят в промежутке, «на земле» у следующего кейса
+      sprite("croc", cols * 0.55, sber.y - 3, 92 * z);
+      sprite("corn", 32 * z, arz.y - 3, 64 * z, 0.62);
+      sprite("cup", cols - 20 * z, arz.y - 3, 22 * z);
+      sprite("cap", 36 * z, np.y - 3, 54 * z);
+      hat(cols - 30 * z, np.y - 3, 52 * z);
+      sprite("vobla", cols * 0.5, gpn.y - 3, 88 * z);
+      line(-2, cols + 2, B(gpn) + 8 * z, 56 * z);
     }
     return boxes;
   }
